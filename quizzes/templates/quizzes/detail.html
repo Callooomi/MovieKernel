@@ -1,0 +1,62 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block page_title %}{{ quiz.title }} · Quizzes{% endblock %}
+
+{% block styles %}
+<link rel="stylesheet" href="{% static 'css/base.css' %}">
+<link rel="stylesheet" href="{% static 'blog/blog.css' %}">
+<link rel="stylesheet" href="{% static 'quizzes/quizzes.css' %}">
+{% endblock %}
+
+{% block navbar_title %}Quizzes{% endblock %}
+
+{% block content %}
+<div class="mk-quiz">
+
+  <header class="mk-quiz-header">
+    {% if quiz.tag %}<span class="mk-chip">{{ quiz.tag }}</span>{% endif %}
+    <h1>{{ quiz.title }}</h1>
+    {% if quiz.headline %}<p class="mk-quiz-lead">{{ quiz.headline }}</p>{% endif %}
+  </header>
+
+  {% if quiz.hero_image %}
+  <img class="mk-article-hero" src="{{ quiz.hero_image.url }}" alt="{{ quiz.title }}">
+  {% endif %}
+
+  {% if quiz.is_multiple_choice and total %}
+  <div id="quiz-score" class="mk-quiz-score" data-total="{{ total }}">
+    <span id="quiz-score-text">Answered 0 / {{ total }}</span>
+  </div>
+  {% endif %}
+
+  <ol class="mk-question-list">
+    {% for question in questions %}
+    <li class="mk-question" data-question>
+      <p class="mk-question-text"><span class="mk-question-num">{{ forloop.counter }}.</span> {{ question.text }}</p>
+
+      {% if question.image %}
+      <img class="mk-question-image" src="{{ question.image.url }}" alt="">
+      {% endif %}
+
+      {% if quiz.is_multiple_choice %}
+        <div class="mk-choices" data-choices>
+          {% for choice in question.choice_list %}
+          <button type="button" class="mk-choice" data-correct="{% if choice.is_correct %}1{% else %}0{% endif %}">
+            {{ choice.text }}
+          </button>
+          {% endfor %}
+        </div>
+      {% else %}
+        <button type="button" class="mk-reveal-btn" data-reveal-btn>Reveal answer</button>
+        <div class="mk-reveal-answer" data-reveal-answer hidden>{{ question.reveal_answer|linebreaksbr }}</div>
+      {% endif %}
+    </li>
+    {% endfor %}
+  </ol>
+
+  <a class="mk-back" href="{% url 'quizzes:home' %}">&larr; All quizzes</a>
+</div>
+
+<script src="{% static 'quizzes/quiz.js' %}"></script>
+{% endblock %}

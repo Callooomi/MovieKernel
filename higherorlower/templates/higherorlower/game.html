@@ -1,0 +1,301 @@
+{% extends 'base.html' %}
+{% load humanize %}
+{% load static %}
+
+{% block styles %}
+<link rel="stylesheet" href="{% static 'higherorlower/style.css' %}">
+<link rel="stylesheet" href="{% static 'css/base.css' %}">
+{% endblock %}
+
+{% block navbar_title %}
+    Higher or Lower
+{% endblock %}
+
+{% block content %}
+    <!-- Score Display - COMPLETELY OUTSIDE game content -->
+    {% if not game_over %}
+        <div class="score-display">
+            Score: <span class="score-value">{{ score }}</span>
+        </div>
+    {% endif %}
+
+    <div class="game-wrapper">
+        {% if game_over %}
+            <div class="game-over-container">
+                <p>{{ message }}</p>
+                <form method="post">
+                    {% csrf_token %}
+                    <button type="submit" name="play_again" value="true">Play Again</button>
+                </form>
+            </div>
+        {% else %}
+            <div class="game-content">
+                <!-- Left Side - Current Actor -->
+                <div class="actor-side left {% if left_side_red %}red-side{% else %}black-side{% endif %}">
+
+                    {% if current_actor.image %}
+                    <style>
+                        .actor-side.left::before {
+                            background-image: url('{{ current_actor.image.url }}') !important;
+                        }
+                    </style>
+                    {% endif %}
+
+                    <div class="actor-info">
+                        <div class="actor-name">{{ current_actor.name }}</div>
+                        <div class="stat-title">{{ left_stat_name }}</div>
+                        <div class="stat-circle" {% if 'Box Office' in left_stat_name %}data-stat="box_office"{% endif %}>
+                            <div class="stat-value">
+                                {% if 'Box Office' in left_stat_name %}$
+                                    {{ left_stat_value|intcomma }}
+                                {% else %}
+                                    {{ left_stat_value|intcomma }}
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Photo Attribution - MOVED TO BOTTOM -->
+                    {% if current_actor.image_attribution %}
+                        <div class="photo-attribution">{{ current_actor.image_attribution }}</div>
+                    {% endif %}
+                </div>
+
+                <!-- Right Side - Guess Actor -->
+                <div class="actor-side right {% if left_side_red %}black-side{% else %}red-side{% endif %}">
+
+                    {% if right_actor.image %}
+                    <style>
+                        .actor-side.right::before {
+                            background-image: url('{{ right_actor.image.url }}') !important;
+                        }
+                    </style>
+                    {% endif %}
+
+                    <div class="actor-info">
+                        <div class="actor-name">{{ right_actor.name }}</div>
+                        <div class="stat-title">{{ left_stat_name }}</div>
+                        <div class="stat-circle" {% if 'Box Office' in left_stat_name %}data-stat="box_office"{% endif %}>
+                            <div class="question-mark">?</div>
+                            <div class="revealed-value">
+                                {% if 'Box Office' in left_stat_name %}
+                                    ${% if current_stat == 'age' %}{{ right_actor.age|intcomma }}
+                                      {% elif current_stat == 'box_office' %}{{ right_actor.box_office|intcomma }}
+                                      {% elif current_stat == 'leading_roles' %}{{ right_actor.leading_roles|intcomma }}
+                                      {% elif current_stat == 'oscar_nominations' %}{{ right_actor.oscar_nominations|intcomma }}
+                                    {% endif %}
+                                {% else %}
+                                    {% if current_stat == 'age' %}{{ right_actor.age|intcomma }}
+                                      {% elif current_stat == 'box_office' %}{{ right_actor.box_office|intcomma }}
+                                      {% elif current_stat == 'leading_roles' %}{{ right_actor.leading_roles|intcomma }}
+                                      {% elif current_stat == 'oscar_nominations' %}{{ right_actor.oscar_nominations|intcomma }}
+                                    {% endif %}
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Photo Attribution - MOVED TO BOTTOM -->
+                    {% if right_actor.image_attribution %}
+                        <div class="photo-attribution">{{ right_actor.image_attribution }}</div>
+                    {% endif %}
+                </div>
+
+                <!-- Guess Section -->
+                <div class="guess-section">
+                    <form method="post">
+                        {% csrf_token %}
+                        <!-- Hidden fields to track exactly what was displayed to the user -->
+                        <input type="hidden" name="right_actor_id" value="{{ right_actor.id }}">
+                        <input type="hidden" name="current_stat" value="{{ current_stat }}">
+                        <div class="guess-buttons">
+                            <button type="submit" name="guess" value="higher" class="guess-btn higher">Higher</button>
+                            <button type="submit" name="guess" value="lower" class="guess-btn lower">Lower</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Success Message - Hidden since we use animations -->
+            {% if message and not game_over %}
+                <div class="success-message" style="display: none;">
+                    {{ message }}
+                </div>
+            {% endif %}
+        {% endif %}
+    </div>
+
+    <script>
+        // Track the current round score for color alternation
+        let currentScore = {{ score }};
+
+        // Handle form submission with animations
+        document.addEventListener('DOMContentLoaded', function() {
+            attachEventListeners();
+            updateSideColors();
+
+            // Check if we should animate the right side entrance
+            const urlParams = new URLSearchParams(window.location.search);
+            if (urlParams.get('animate') === 'entrance') {
+                animateRightSideEntrance();
+            }
+        });
+
+        function animateRightSideEntrance() {
+            const rightSide = document.querySelector('.actor-side.right');
+            const leftSide = document.querySelector('.actor-side.left');
+
+            if (rightSide) {
+                console.log('New actor sliding in from bottom');
+
+                rightSide.classList.add('preparing-entrance');
+
+                setTimeout(() => {
+                    rightSide.classList.remove('preparing-entrance');
+                    rightSide.classList.add('slide-in-from-bottom');
+
+                    if (leftSide) {
+                        console.log('Left actor transforming simultaneously with right actor entrance');
+                        leftSide.classList.add('new-current');
+
+                        setTimeout(() => {
+                            leftSide.classList.remove('new-current');
+                        }, 1200);
+                    }
+                }, 100);
+            }
+        }
+
+        function updateSideColors() {
+            const leftSide = document.querySelector('.actor-side.left');
+            const rightSide = document.querySelector('.actor-side.right');
+
+            const leftShouldBeRed = (currentScore % 2 === 0);
+
+            console.log(`Score: ${currentScore}, Left should be red: ${leftShouldBeRed}`);
+
+            if (leftShouldBeRed) {
+                leftSide.className = 'actor-side left red-side';
+                rightSide.className = 'actor-side right black-side';
+            } else {
+                leftSide.className = 'actor-side left black-side';
+                rightSide.className = 'actor-side right red-side';
+            }
+        }
+
+        function attachEventListeners() {
+            const gameContent = document.querySelector('.game-content');
+
+            const higherBtn = document.querySelector('button[value="higher"]');
+            const lowerBtn = document.querySelector('button[value="lower"]');
+
+            if (higherBtn && lowerBtn && gameContent) {
+                higherBtn.replaceWith(higherBtn.cloneNode(true));
+                lowerBtn.replaceWith(lowerBtn.cloneNode(true));
+
+                const newHigherBtn = document.querySelector('button[value="higher"]');
+                const newLowerBtn = document.querySelector('button[value="lower"]');
+
+                newHigherBtn.addEventListener('click', function(event) {
+                    event.preventDefault();
+                    handleGuess('higher');
+                });
+
+                newLowerBtn.addEventListener('click', function(event) {
+                    event.preventDefault();
+                    handleGuess('lower');
+                });
+            }
+        }
+
+        function handleGuess(guess) {
+            const gameContent = document.querySelector('.game-content');
+            const rightCircle = document.querySelector('.actor-side.right .stat-circle');
+            const rightSide = document.querySelector('.actor-side.right');
+            const leftSide = document.querySelector('.actor-side.left');
+
+            gameContent.classList.add('animating');
+
+            const form = document.querySelector('form[method="post"]');
+            const formData = new FormData(form);
+
+            formData.set('guess', guess);
+
+            console.log('Guess:', guess);
+
+            fetch(window.location.href, {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'X-CSRFToken': formData.get('csrfmiddlewaretoken')
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                console.log('Response:', data);
+
+                if (data.correct) {
+                    currentScore++;
+
+                    const floatingScoreValue = document.querySelector('.score-display .score-value');
+                    if (floatingScoreValue) {
+                        floatingScoreValue.textContent = currentScore;
+                        console.log('Updated floating score to:', currentScore);
+
+                        const floatingScore = document.querySelector('.score-display');
+                        if (floatingScore) {
+                            floatingScore.classList.add('score-updated');
+                            floatingScore.style.pointerEvents = 'auto';
+                            setTimeout(() => {
+                                floatingScore.classList.remove('score-updated');
+                                floatingScore.style.pointerEvents = 'none';
+                            }, 600);
+                        }
+                    }
+
+                    rightCircle.classList.add('flash-correct');
+
+                    setTimeout(() => {
+                        rightCircle.classList.remove('flash-correct');
+                        rightCircle.classList.add('fade-back');
+
+                        const nextLeftShouldBeRed = (currentScore % 2 === 0);
+                        console.log(`Next round - Score: ${currentScore}, Left should be red: ${nextLeftShouldBeRed}`);
+
+                        if (nextLeftShouldBeRed) {
+                            rightSide.className = 'actor-side right red-side slide-out-left';
+                        } else {
+                            rightSide.className = 'actor-side right black-side slide-out-left';
+                        }
+
+                        setTimeout(() => {
+                            window.location.href = window.location.pathname + '?animate=entrance';
+                        }, 1000);
+                    }, 800);
+
+                } else {
+                    rightCircle.classList.add('flash-incorrect');
+
+                    setTimeout(() => {
+                        const gameWrapper = document.querySelector('.game-wrapper');
+                        gameWrapper.innerHTML = `
+                            <div class="game-over-container">
+                                <p>${data.message}</p>
+                                <form method="post">
+                                    <input type="hidden" name="csrfmiddlewaretoken" value="${formData.get('csrfmiddlewaretoken')}">
+                                    <button type="submit" name="play_again" value="true">Play Again</button>
+                                </form>
+                            </div>
+                        `;
+                    }, 1000);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                gameContent.classList.remove('animating');
+                window.location.reload();
+            });
+        }
+    </script>
+{% endblock %}

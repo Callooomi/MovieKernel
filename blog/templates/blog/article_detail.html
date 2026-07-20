@@ -1,0 +1,29 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block styles %}
+<link rel="stylesheet" href="{% static 'css/base.css' %}">
+<link rel="stylesheet" href="{% static 'blog/blog.css' %}">
+{% endblock %}
+
+{% block content %}
+<article class="mk-article">
+
+  <header class="mk-article-header">
+    {% if article.tag %}<span class="mk-chip">{{ article.tag }}</span>{% endif %}
+    <h1>{{ article.title }}</h1>
+    <p class="mk-article-date">{{ article.published_at|date:"j F Y" }}</p>
+  </header>
+
+  {% if article.hero_image %}
+  <img class="mk-article-hero" src="{{ article.hero_image.url }}" alt="{{ article.title }}">
+  {% endif %}
+
+  <div class="mk-article-body">
+    {{ article.body_html|safe }}
+  </div>
+
+  <a class="mk-back" href="{% url 'blog:home' %}">&larr; Back to all articles</a>
+
+</article>
+{% endblock %}

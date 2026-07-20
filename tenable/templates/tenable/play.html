@@ -1,0 +1,237 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block styles %}
+<link rel="stylesheet" href="{% static 'tenable/style.css' %}">
+<link rel="stylesheet" href="{% static 'css/base.css' %}">
+{% endblock %}
+
+{% block navbar_title %}
+    Tenable
+{% endblock %}
+
+{% block content %}
+<div class="tenable-wrapper">
+    <h2 class="question-title">{{ question.question_text }}</h2>
+    {% if question.description %}<p class="question-description">{{ question.description }}</p>{% endif %}
+
+    <div class="lives-and-reveal">
+        <p class="lives">Lives remaining: {{ remaining_lives }}</p>
+        {% if not is_game_over and not reveal %}
+        <form method="post">
+            {% csrf_token %}
+            <button type="submit" name="reveal" value="true" class="play-again-btn" onclick="showTenableModal()">Give up</button>
+        </form>
+        {% endif %}
+    </div>
+
+    <ul class="answers-box">
+        {% for item in ordered_display_answers %}
+        <li class="{% if item in correct_answers_display %}correct{% endif %}" id="answer-{{ forloop.counter }}">
+            <span>{{ item }}</span>
+        </li>
+        {% endfor %}
+    </ul>
+
+    {% if not is_game_over and not reveal %}
+    <form method="post" class="form-inline" id="guess-form">
+        {% csrf_token %}
+        <input type="text" name="guess" placeholder="Your guess" list="movie-titles" autocomplete="off" required>
+        <datalist id="movie-titles">
+            {% for title in movie_titles %}
+            <option value="{{ title }}"></option>
+            {% endfor %}
+        </datalist>
+        <button type="submit">Submit Guess</button>
+    </form>
+    {% endif %}
+
+    {% if reveal or is_game_over %}
+    <form method="post">
+        {% csrf_token %}
+        <button type="submit" name="play_again" value="true" class="play-again-btn">Play Again</button>
+    </form>
+    {% endif %}
+
+    <div style="margin-top: 20px;">
+        {% if prev_id %}
+        <a href="{% url 'tenable:play' prev_id %}"><button class="nav-btn">← Previous Tenable</button></a>
+        {% else %}
+        <button class="nav-btn" disabled>← Previous Tenable</button>
+        {% endif %}
+        {% if next_id %}
+        <a href="{% url 'tenable:play' next_id %}"><button class="nav-btn">Next Tenable →</button></a>
+        {% else %}
+        <button class="nav-btn" disabled>Next Tenable →</button>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Game Over Modal -->
+<div id="tenable-gameover-modal" class="modal">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h2>Game Over</h2>
+      <button class="close" onclick="closeTenableModal()">&times;</button>
+    </div>
+    <div class="modal-body" style="text-align:center">
+      <p class="score-highlight">Total correct answers: {{ score_summary }}</p>
+      <p class="custom-message">{{ custom_message }}</p>
+      <p class="lives-used">Incorrect attempts used: {{ incorrect_attempts }}/3</p>
+
+      <div class="network-nav-buttons">
+        {% if score_summary != "10/10" %}
+        <form method="post" onsubmit="setRevealClickedFlag()" style="margin:0">
+            {% csrf_token %}
+            <button type="submit" name="reveal" value="true" class="play-again-btn">Reveal Missing Answers</button>
+        </form>
+        {% endif %}
+        <button onclick="copyShareLink('{{ question_number }}', '{{ score_summary }}')" class="play-again-btn">Copy Share Link</button>
+      </div>
+
+      <div class="share-buttons">
+        <a id="twitter-share" target="_blank"><button class="play-again-btn">Twitter/X</button></a>
+        <a id="whatsapp-share" target="_blank"><button class="play-again-btn">WhatsApp</button></a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+
+    const movieTitles = [
+        {% for title in movie_titles %}
+        "{{ title|escapejs }}",
+        {% endfor %}
+    ];
+
+    const input = document.querySelector('input[name="guess"]');
+    const dataList = document.getElementById('movie-titles');
+
+    if (input && dataList) {
+        input.addEventListener('input', function () {
+            const val = this.value.trim().toLowerCase();
+            dataList.innerHTML = '';
+
+            // ✅ Only show suggestions after typing at least 2 characters
+            if (val.length < 2) return;
+
+            const filtered = movieTitles.filter(title =>
+                title.toLowerCase().startsWith(val)
+            );
+
+            // Add filtered results to datalist
+            filtered.forEach(title => {
+                const option = document.createElement('option');
+                option.value = title;
+                dataList.appendChild(option);
+            });
+        });
+    }
+
+    // Prevent double submission
+    let isAnimating = false;
+
+    const showFlashingEffect = (correctAnswerIndex) => {
+        if (isAnimating) return;
+        isAnimating = true;
+
+        const answerItems = document.querySelectorAll('.answers-box li');
+        let currentIndex = answerItems.length;
+
+        const flashInterval = setInterval(() => {
+            answerItems.forEach(item => item.classList.remove('flashing'));
+
+            if (currentIndex === correctAnswerIndex) {
+                answerItems[currentIndex - 1].classList.add('flash-correct');
+                clearInterval(flashInterval);
+                setTimeout(() => {
+                    isAnimating = false;
+                    document.getElementById('guess-form').submit();
+                }, 500);
+            } else if (currentIndex <= 0) {
+                clearInterval(flashInterval);
+                isAnimating = false;
+                document.getElementById('guess-form').submit();
+            } else {
+                answerItems[currentIndex - 1].classList.add('flashing');
+                currentIndex--;
+            }
+        }, 600);
+    };
+
+    const showIncorrectEffect = () => {
+        if (isAnimating) return;
+        isAnimating = true;
+
+        const answerItems = document.querySelectorAll('.answers-box li');
+        answerItems.forEach(item => item.classList.add('flash-incorrect'));
+        setTimeout(() => {
+            answerItems.forEach(item => item.classList.remove('flash-incorrect'));
+            isAnimating = false;
+            document.getElementById('guess-form').submit();
+        }, 800);
+    };
+
+    const form = document.getElementById('guess-form');
+    if (form) {
+        form.addEventListener('submit', function (event) {
+            event.preventDefault();
+            if (isAnimating) return;
+
+            const guess = input.value.trim().toLowerCase();
+            const correctAnswers = [
+                {% for answer in all_answers %}
+                "{{ answer|lower|escapejs }}",
+                {% endfor %}
+            ];
+            const correctAnswerIndex = correctAnswers.findIndex(answer => answer === guess) + 1;
+
+            if (correctAnswerIndex > 0) {
+                showFlashingEffect(correctAnswerIndex);
+            } else {
+                showIncorrectEffect();
+            }
+        });
+    }
+
+    function copyShareLink(qNumber, score) {
+        const baseUrl = window.location.href.split('?')[0];
+        navigator.clipboard.writeText(baseUrl);
+
+        const text = `I scored ${score} on Tenable Network #${qNumber}!`;
+        document.getElementById('twitter-share').href =
+            `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(baseUrl)}`;
+        document.getElementById('whatsapp-share').href =
+            `https://wa.me/?text=${encodeURIComponent(text + ' ' + baseUrl)}`;
+    }
+
+    function showTenableModal() {
+        const modal = document.getElementById('tenable-gameover-modal');
+        if (modal) modal.style.display = 'flex';
+    }
+
+    function closeTenableModal() {
+        const modal = document.getElementById('tenable-gameover-modal');
+        if (modal) modal.style.display = 'none';
+    }
+
+    function setRevealClickedFlag() {
+        sessionStorage.setItem('revealClicked', 'true');
+    }
+
+    function maybeShowTenableModal() {
+        const isGameOver = {{ is_game_over|yesno:"true,false" }};
+        const isReveal = {{ reveal|yesno:"true,false" }};
+        const revealClicked = sessionStorage.getItem('revealClicked') === 'true';
+
+        if ((isGameOver || isReveal) && !revealClicked) {
+            showTenableModal();
+        }
+
+        sessionStorage.removeItem('revealClicked');
+    }
+
+    document.addEventListener('DOMContentLoaded', maybeShowTenableModal);
+</script>
+{% endblock %}

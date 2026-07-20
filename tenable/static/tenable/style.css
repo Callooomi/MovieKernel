@@ -1,0 +1,155 @@
+/* Tenable — MovieKernel cream/maroon reskin.
+   Page background comes from the site theme (cream). Modal chrome + the game-over
+   action buttons come from base.css; this file styles the game content. */
+
+.tenable-wrapper {
+  margin: 0 auto;
+  padding: 1.5rem 1rem 3rem;
+  width: 100%;
+  max-width: 600px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.question-title {
+  font-family: var(--mk-serif);
+  font-size: clamp(1.4rem, 4vw, 1.9rem);
+  font-weight: 600;
+  color: var(--mk-espresso);
+  text-align: center;
+  margin: 0.5rem 0 0.4rem;
+}
+
+.question-description {
+  text-align: center;
+  color: var(--mk-muted);
+  font-size: 0.95rem;
+  max-width: 520px;
+  margin: 0 auto 1.1rem;
+  line-height: 1.5;
+}
+
+/* Lives & control row */
+.lives-and-reveal {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  margin-bottom: 0.6rem;
+  padding: 0 0.3rem;
+}
+.lives {
+  color: var(--mk-maroon);
+  font-size: 1.1rem;
+  font-weight: 600;
+}
+
+/* Input + buttons */
+.form-inline {
+  display: flex;
+  width: 100%;
+  max-width: 500px;
+  gap: 0.8rem;
+  margin-top: 0.6rem;
+}
+.tenable-wrapper input[type="text"] {
+  flex: 1;
+  padding: 10px 14px;
+  border-radius: 8px;
+  border: 1px solid var(--mk-line);
+  background-color: var(--mk-ivory);
+  color: var(--mk-espresso);
+  font-family: inherit;
+  outline: none;
+}
+.tenable-wrapper input[type="text"]:focus {
+  border-color: var(--mk-maroon);
+  box-shadow: 0 0 0 3px rgba(139, 42, 46, 0.15);
+}
+
+.tenable-wrapper button[type="submit"],
+.tenable-wrapper .play-again-btn {
+  background-color: var(--mk-maroon);
+  color: var(--mk-ivory);
+  font-weight: 600;
+  border: none;
+  border-radius: 8px;
+  padding: 9px 18px;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+.tenable-wrapper button[type="submit"]:hover,
+.tenable-wrapper .play-again-btn:hover {
+  background-color: var(--mk-maroon-deep);
+}
+
+/* Answers list */
+.answers-box {
+  list-style: none;
+  width: 100%;
+  padding: 0.5rem;
+  background: var(--mk-ivory);
+  border: 1px solid var(--mk-line);
+  border-radius: 12px;
+  margin-bottom: 1rem;
+}
+.answers-box li {
+  font-size: 1.05rem;
+  font-weight: 500;
+  padding: 0.55rem;
+  border-bottom: 1px solid var(--mk-line);
+  text-align: center;
+  color: var(--mk-espresso);
+  border-radius: 8px;
+}
+.answers-box li:last-child { border-bottom: none; }
+.answers-box li.correct {
+  background-color: var(--mk-maroon);
+  color: var(--mk-ivory);
+}
+.answers-box li.flashing { animation: flashGold 0.6s ease-in-out; border-radius: 12px; }
+.answers-box li.flash-correct { animation: flashCorrect 0.6s ease-in-out; border-radius: 12px; }
+.answers-box li.flash-incorrect { animation: flashIncorrect 2s ease-in-out; border-radius: 12px; }
+
+@keyframes flashGold {
+  0% { background-color: transparent; }
+  50% { background-color: var(--mk-gold); color: var(--mk-espresso); }
+  100% { background-color: transparent; color: inherit; }
+}
+@keyframes flashCorrect {
+  0% { background-color: transparent; }
+  50% { background-color: #C9A24B; color: #3A2418; }
+  100% { background-color: #8B2A2E; color: #fff; }
+}
+@keyframes flashIncorrect {
+  0% { background-color: transparent; }
+  50% { background-color: #E24B4A; color: #fff; }
+  100% { background-color: transparent; }
+}
+
+/* Prev / next */
+.nav-btn {
+  margin-top: 0.8rem;
+  padding: 8px 14px;
+  background-color: var(--mk-maroon);
+  color: var(--mk-ivory);
+  border: none;
+  font-weight: 600;
+  font-size: 0.85rem;
+  cursor: pointer;
+  border-radius: 8px;
+  transition: background-color 0.2s ease;
+}
+.nav-btn:hover { background-color: var(--mk-maroon-deep); }
+.nav-btn:disabled {
+  background-color: var(--mk-line);
+  color: var(--mk-muted);
+  cursor: not-allowed;
+}
+
+/* Game-over modal: centred text (action buttons styled by base.css) */
+#tenable-gameover-modal .modal-body { text-align: center; }
+.score-highlight { font-size: 1.3rem; font-weight: 600; color: var(--mk-maroon); margin-bottom: 0.5rem; }
+.custom-message { font-style: italic; color: var(--mk-muted); margin-bottom: 0.5rem; }
+.lives-used { color: var(--mk-muted); margin-bottom: 0.25rem; }

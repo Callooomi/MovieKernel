@@ -1,0 +1,16 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block styles %}
+<link rel="stylesheet" href="{% static 'tenable/style.css' %}">
+<link rel="stylesheet" href="{% static 'css/base.css' %}">
+{% endblock %}
+
+{% block navbar_title %}Tenable{% endblock %}
+
+{% block content %}
+<div class="tenable-wrapper">
+  <h2 class="question-title">No puzzles yet</h2>
+  <p class="question-description">Add a Tenable in the admin (with today's date or earlier) and it'll appear here.</p>
+</div>
+{% endblock %}

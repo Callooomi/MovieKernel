@@ -1,0 +1,256 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block styles %}
+<link rel="stylesheet" href="{% static 'bingo/style.css' %}">
+<link rel="stylesheet" href="{% static 'css/base.css' %}">
+{% endblock %}
+
+{% block content %}
+
+<a id="game-section"></a>
+
+{% if game_over %}
+<div class="actor-box game-over-box">
+    <div class="result-message">
+        {% if game_won %}
+            <p class="win-message">🎉 You won! You completed the board! 🎉</p>
+        {% else %}
+            <p class="lose-message">You lost! No more actors left.</p>
+        {% endif %}
+    </div>
+    <form method="post">
+        {% csrf_token %}
+        <button type="submit" name="retry" class="btn">Play Again</button>
+    </form>
+</div>
+{% else %}
+
+<div class="actor-box" id="actor-box">
+    <div class="actor-info">
+        <p class="actor-count" id="actor-count">Actor {{ current_index }} of {{ total_actors }}</p>
+        {% if current_actor %}
+            <p class="actor-name" id="current-actor-name">{{ current_actor.name }}</p>
+        {% else %}
+            <p class="actor-name" id="current-actor-name">No current actor.</p>
+        {% endif %}
+    </div>
+
+    <form method="post" class="skip-form" id="skip-form">
+        {% csrf_token %}
+        <input type="hidden" name="skip" value="1">
+        <button type="submit" name="skip" class="btn" id="skip-btn">Skip</button>
+    </form>
+</div>
+{% endif %}
+
+<div class="bingo-board-wrapper">
+    <div class="bingo-board-grid">
+        {% for row in board_rows %}
+            {% for placeholder in row %}
+                {% if placeholder.id in confirmed_placeholders %}
+                <div class="cell confirmed" id="cell-{{ placeholder.id }}" data-id="{{ placeholder.id }}">
+                    {% if placeholder.image %}
+                    <img src="{{ placeholder.image.url }}" alt="{{ placeholder.text }}" class="placeholder-image" loading="lazy">
+                    {% endif %}
+                    <p>{{ placeholder.text }}</p>
+                </div>
+                {% elif not game_over %}
+                <div class="cell clickable" id="cell-{{ placeholder.id }}" data-id="{{ placeholder.id }}" data-placeholder-id="{{ placeholder.id }}">
+                    {% if placeholder.image %}
+                    <img src="{{ placeholder.image.url }}" alt="{{ placeholder.text }}" class="placeholder-image" loading="lazy">
+                    {% endif %}
+                    <p>{{ placeholder.text }}</p>
+                </div>
+                {% else %}
+                <div class="cell" id="cell-{{ placeholder.id }}" data-id="{{ placeholder.id }}">
+                    {% if placeholder.image %}
+                    <img src="{{ placeholder.image.url }}" alt="{{ placeholder.text }}" class="placeholder-image" loading="lazy">
+                    {% else %}
+                    <p>No image available</p>
+                    {% endif %}
+                    <p>{{ placeholder.text }}</p>
+                </div>
+                {% endif %}
+            {% endfor %}
+        {% endfor %}
+    </div>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script src="{% static 'bingo/script.js' %}" defer></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Function to handle skipping an actor
+    const skipForm = document.getElementById('skip-form');
+    if (skipForm) {
+        skipForm.addEventListener('submit', function(event) {
+            event.preventDefault();
+
+            const skipBtn = document.getElementById('skip-btn');
+            if (skipBtn) {
+                skipBtn.disabled = true;
+                skipBtn.textContent = 'Skipping...';
+            }
+
+            const formData = new FormData(this);
+
+            fetch("{% url 'bingo:update_game_state' %}", {
+                method: "POST",
+                body: formData,
+                headers: {
+                    "X-CSRFToken": document.querySelector('[name="csrfmiddlewaretoken"]').value
+                }
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                return response.json();
+            })
+            .then(data => {
+                console.log('Skip response:', data);
+                updateGameState(data);
+
+                if (skipBtn) {
+                    skipBtn.disabled = false;
+                    skipBtn.textContent = 'Skip';
+                }
+            })
+            .catch(error => {
+                console.error("Error processing skip:", error);
+                if (skipBtn) {
+                    skipBtn.disabled = false;
+                    skipBtn.textContent = 'Skip';
+                }
+            });
+        });
+    }
+
+    // Function to handle placeholder selection - now using click events on the cell itself
+    document.querySelectorAll('.cell.clickable').forEach(function(cell) {
+        cell.addEventListener('click', function(event) {
+            // If the cell is confirmed, do not proceed
+            if (this.classList.contains('confirmed')) {
+                return; // Prevent any further action
+            }
+
+            event.preventDefault();
+
+            const cellId = this.getAttribute('data-placeholder-id');
+
+            // Disable cell during request
+            this.style.opacity = '0.7';
+            this.style.pointerEvents = 'none';
+
+            const formData = new FormData();
+            formData.append('selected_placeholder', cellId);
+            formData.append('csrfmiddlewaretoken', document.querySelector('[name="csrfmiddlewaretoken"]').value);
+
+            fetch("{% url 'bingo:update_game_state' %}", {
+                method: "POST",
+                body: formData,
+                headers: {
+                    "X-CSRFToken": document.querySelector('[name="csrfmiddlewaretoken"]').value
+                }
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                return response.json();
+            })
+            .then(data => {
+                console.log('Selection response:', data);
+                updateGameState(data);
+
+                // Handle cell confirmation or incorrect flash
+                if (data.confirmed_placeholders.includes(parseInt(cellId))) {
+                    // Correct answer - confirm the cell
+                    this.classList.remove('clickable');
+                    this.classList.add('confirmed');
+                    this.style.opacity = '1';
+                    this.style.pointerEvents = 'none';  // Ensure it's non-interactive
+                } else {
+                    // Incorrect answer - flash red
+                    this.classList.add('incorrect');
+                    setTimeout(() => {
+                        this.classList.remove('incorrect');
+                        this.style.opacity = '1';
+                        this.style.pointerEvents = 'auto';
+                    }, 500);
+                }
+            })
+            .catch(error => {
+                console.error("Error processing selection:", error);
+
+                // Re-enable cell on error
+                this.style.opacity = '1';
+                this.style.pointerEvents = 'auto';
+            });
+        });
+    });
+
+    function updateGameState(data) {
+        console.log('Updating game state with:', data);
+
+        // Update current actor name
+        const actorNameElement = document.getElementById('current-actor-name');
+        if (actorNameElement) {
+            actorNameElement.textContent = data.current_actor || 'No current actor';
+        }
+
+        // Update actor count
+        const actorCountElement = document.getElementById('actor-count');
+        if (actorCountElement) {
+            actorCountElement.textContent = `Actor ${data.current_index} of ${data.total_actors}`;
+        }
+
+        // Handle game over
+        if (data.game_over) {
+            if (data.game_won) {
+                showGameOverMessage('🎉 You won! You completed the board! 🎉', true);
+            } else {
+                showGameOverMessage('You lost! No more actors left.', false);
+            }
+        }
+    }
+
+    function showGameOverMessage(message, isWin) {
+        const actorBox = document.getElementById('actor-box');
+        if (actorBox) {
+            actorBox.className = 'actor-box game-over-box';
+            actorBox.innerHTML = `
+                <div class="result-message">
+                    <p class="${isWin ? 'win-message' : 'lose-message'}">${message}</p>
+                </div>
+                <form method="post">
+                    <input type="hidden" name="csrfmiddlewaretoken" value="${document.querySelector('[name="csrfmiddlewaretoken"]').value}">
+                    <button type="submit" name="retry" class="btn">Play Again</button>
+                </form>
+            `;
+        }
+    }
+
+    // Function to adjust font size
+    function adjustFontSize() {
+        document.querySelectorAll('.cell p').forEach(function(cellText) {
+            const cell = cellText.closest('.cell');
+            const textLength = cellText.textContent.length;
+
+            // Scale font size based on the length of the text
+            let fontSize = Math.max(0.7, 1 - (textLength / 100)); // Decrease font size as text grows longer
+            fontSize = fontSize.toFixed(2); // Set to 2 decimal places
+
+            // Apply font size to text
+            cellText.style.fontSize = `${fontSize}em`;
+        });
+    }
+
+    // Adjust font size on page load and whenever content changes
+    adjustFontSize();
+});
+</script>
+{% endblock %}

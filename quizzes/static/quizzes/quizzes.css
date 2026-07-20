@@ -1,0 +1,130 @@
+/* ============================================================
+   MovieKernel — Quizzes
+   Feed reuses blog.css (.mk-featured/.mk-card). This file styles
+   the small meta line + the quiz-playing page.
+   ============================================================ */
+
+.mk-quiz-meta {
+  margin: 0.15rem 0 0;
+  color: var(--mk-maroon);
+  font-size: 0.85rem;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+}
+
+/* ---------- quiz page ---------- */
+.mk-quiz {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: clamp(1.5rem, 4vw, 3rem) clamp(1rem, 4vw, 1.5rem) 4rem;
+}
+.mk-quiz-header { margin-bottom: 1.25rem; }
+.mk-quiz-header h1 {
+  font-family: var(--mk-serif);
+  font-weight: 600;
+  font-size: clamp(2rem, 5vw, 3rem);
+  line-height: 1.08;
+  margin: 0.7rem 0 0.5rem;
+  color: var(--mk-espresso);
+}
+.mk-quiz-lead { color: var(--mk-muted); font-size: 1.05rem; margin: 0; }
+
+/* live score */
+.mk-quiz-score {
+  position: sticky;
+  top: 76px;
+  z-index: 5;
+  background-color: var(--mk-maroon);
+  color: var(--mk-ivory);
+  font-weight: 600;
+  text-align: center;
+  padding: 0.6rem 1rem;
+  border-radius: var(--mk-radius);
+  margin-bottom: 2rem;
+  box-shadow: 0 6px 18px rgba(58, 36, 24, 0.16);
+}
+
+/* questions */
+.mk-question-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+.mk-question {
+  background-color: var(--mk-ivory);
+  border: 1px solid var(--mk-line);
+  border-radius: var(--mk-radius);
+  padding: 1.4rem 1.5rem;
+}
+.mk-question-text {
+  font-size: 1.15rem;
+  font-weight: 500;
+  color: var(--mk-espresso);
+  margin: 0 0 1rem;
+  line-height: 1.4;
+}
+.mk-question-num { color: var(--mk-maroon); font-weight: 700; margin-right: 0.25rem; }
+.mk-question-image {
+  display: block;
+  max-width: 100%;
+  height: auto;
+  border-radius: var(--mk-radius);
+  border: 1px solid var(--mk-line);
+  margin: 0 0 1.1rem;
+}
+
+/* multiple choice */
+.mk-choices { display: flex; flex-direction: column; gap: 0.65rem; }
+.mk-choice {
+  text-align: left;
+  font: inherit;
+  font-size: 1rem;
+  color: var(--mk-espresso);
+  background-color: var(--mk-cream);
+  border: 1.5px solid var(--mk-line);
+  border-radius: 10px;
+  padding: 0.8rem 1rem;
+  cursor: pointer;
+  transition: background-color 0.15s ease, border-color 0.15s ease, transform 0.1s ease;
+}
+.mk-choice:hover:not(.answered-set) { border-color: var(--mk-gold); transform: translateY(-1px); }
+.mk-choices.answered .mk-choice { cursor: default; }
+.mk-choice.correct {
+  background-color: #E4F3E7;
+  border-color: #3E8E54;
+  color: #225B33;
+  font-weight: 600;
+}
+.mk-choice.incorrect {
+  background-color: #F8E3E2;
+  border-color: #C0413E;
+  color: #8A2C2A;
+  font-weight: 600;
+}
+
+/* click to reveal */
+.mk-reveal-btn {
+  font: inherit;
+  font-weight: 600;
+  color: var(--mk-ivory);
+  background-color: var(--mk-maroon);
+  border: none;
+  border-radius: 10px;
+  padding: 0.65rem 1.2rem;
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+}
+.mk-reveal-btn:hover { background-color: var(--mk-maroon-deep); }
+.mk-reveal-answer {
+  margin-top: 0.9rem;
+  padding: 0.9rem 1.1rem;
+  background-color: var(--mk-cream);
+  border-left: 3px solid var(--mk-gold);
+  border-radius: 8px;
+  color: var(--mk-espresso);
+  font-size: 1.02rem;
+  line-height: 1.5;
+}

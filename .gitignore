@@ -1,0 +1,18 @@
+# Python
+__pycache__/
+*.py[cod]
+venv/
+.venv/
+
+# Django
+db.sqlite3
+db.sqlite3-journal
+/staticfiles/
+
+# Media uploads (carry yours over separately)
+/media/
+
+# OS / editor
+.DS_Store
+.idea/
+.vscode/

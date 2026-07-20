@@ -1,0 +1,61 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block styles %}
+<link rel="stylesheet" href="{% static 'css/base.css' %}">
+<link rel="stylesheet" href="{% static 'blog/blog.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="mk-feed">
+
+  <header class="mk-masthead">
+    <img class="mk-masthead-logo" src="{% static 'blog/moviekernel-logo.png' %}" alt="MovieKernel logo">
+    <h1 class="mk-masthead-title">MovieKernel</h1>
+    <p class="mk-masthead-tagline">The numbers behind the movies, popped open.</p>
+  </header>
+
+  {% if featured %}
+  <a class="mk-featured" href="{{ featured.get_absolute_url }}">
+    <div class="mk-featured-media">
+      {% if featured.hero_image %}
+        <img src="{{ featured.hero_image.url }}" alt="{{ featured.title }}">
+      {% else %}
+        <span class="mk-media-fallback" aria-hidden="true">MK</span>
+      {% endif %}
+    </div>
+    <div class="mk-featured-body">
+      {% if featured.tag %}<span class="mk-chip">{{ featured.tag }}</span>{% endif %}
+      <h1 class="mk-featured-title">{{ featured.title }}</h1>
+      {% if featured.headline %}<p class="mk-featured-excerpt">{{ featured.headline }}</p>{% endif %}
+      <span class="mk-readmore">Read article &rarr;</span>
+    </div>
+  </a>
+  {% endif %}
+
+  <div class="mk-card-list">
+    {% for article in articles %}
+    <a class="mk-card" href="{{ article.get_absolute_url }}">
+      <span class="mk-node" aria-hidden="true"></span>
+      <div class="mk-card-media">
+        {% if article.hero_image %}
+          <img src="{{ article.hero_image.url }}" alt="{{ article.title }}">
+        {% else %}
+          <span class="mk-media-fallback" aria-hidden="true">MK</span>
+        {% endif %}
+      </div>
+      <div class="mk-card-body">
+        {% if article.tag %}<span class="mk-chip mk-chip-sm">{{ article.tag }}</span>{% endif %}
+        <h2 class="mk-card-title">{{ article.title }}</h2>
+        {% if article.headline %}<p class="mk-card-excerpt">{{ article.headline }}</p>{% endif %}
+      </div>
+    </a>
+    {% empty %}
+      {% if not featured %}
+      <p class="mk-empty">No articles yet &mdash; add your first one in the admin under <strong>Articles</strong>.</p>
+      {% endif %}
+    {% endfor %}
+  </div>
+
+</div>
+{% endblock %}

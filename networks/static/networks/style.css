@@ -1,0 +1,195 @@
+/* Grid layout */
+.grid {
+    display: flex;
+    justify-content: center;
+    gap: 1rem;
+    margin-bottom: 2rem;
+    flex-wrap: wrap;
+}
+
+.column {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.tile {
+    background-color: #7A2327;
+    padding: 1rem;
+    text-align: center;
+    font-weight: bold;
+    border-radius: 10px;
+    cursor: pointer;
+    min-width: 100px;
+    transition: all 0.2s ease-in-out;
+    border: 2px solid transparent;
+    color: #fff;
+    box-shadow: 0 0 10px rgba(0,0,0,0.2);
+}
+
+.tile:hover {
+    background-color: #8B2A2E;
+    transform: scale(1.05);
+}
+
+.tile.selected {
+    background-color: #C9A24B;
+    border-color: #E7D3B3;
+    color: #3A2418;
+    transform: scale(1.05);
+}
+
+.tile.locked {
+    cursor: default;
+    pointer-events: none;
+    box-shadow: 0 0 10px rgba(0, 100, 0, 0.3);
+    animation: slideUp 0.3s ease;
+    color: white;
+}
+
+@keyframes slideUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.tile.locked-1 { background-color: #8B0000; }
+.tile.locked-2 { background-color: #B22222; }
+.tile.locked-3 { background-color: #FF8C00; }
+.tile.locked-4 { background-color: #FFA500; }
+.tile.locked-5 { background-color: #FFD700; color: #000; }
+.tile.locked-6 { background-color: #FFC300; color: #000; }
+
+.tile.locked.move-up {
+    animation: slideToTop 0.4s ease-out;
+}
+
+@keyframes slideToTop {
+    from { transform: translateY(40px); opacity: 0.3; }
+    to { transform: translateY(0); opacity: 1; }
+}
+
+/* Step Tracker */
+#step-tracker {
+    text-align: center;
+    font-size: 1rem;
+    font-weight: bold;
+    margin-bottom: 1rem;
+    color: var(--mk-espresso);
+}
+
+#path-labels {
+    color: var(--mk-maroon);
+}
+
+/* Submit Button */
+#submit-btn {
+    background-color: var(--mk-maroon);
+    color: white;
+    border: none;
+    padding: 12px 24px;
+    font-size: 1rem;
+    border-radius: 25px;
+    cursor: pointer;
+    font-weight: bold;
+    transition: background-color 0.3s ease, transform 0.2s ease;
+    margin: 0 auto 1rem;
+    display: block;
+}
+
+#submit-btn:hover {
+    background-color: var(--mk-maroon-deep);
+    transform: scale(1.05);
+}
+
+#result {
+    text-align: center;
+    font-size: 1.1rem;
+    font-weight: bold;
+    margin-top: 0.5rem;
+    color: var(--mk-espresso);
+}
+
+/* Lives */
+#lives {
+    text-align: center;
+    font-size: 1.2rem;
+    font-weight: bold;
+    margin-bottom: 1.5rem;
+    color: var(--mk-maroon);
+}
+
+/* Navigation Buttons */
+.network-nav-buttons {
+    margin-top: 1rem;
+    text-align: center;
+    display: flex;
+    justify-content: center;
+    gap: 1rem;
+    flex-wrap: wrap;
+    padding: 0;
+}
+
+.network-nav-buttons button,
+.network-nav-buttons a button {
+    background-color: var(--mk-maroon);
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    font-size: 0.9rem;
+    font-weight: bold;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background-color 0.3s ease, transform 0.2s ease;
+}
+
+.network-nav-buttons button:hover:not([disabled]),
+.network-nav-buttons a button:hover {
+    background-color: var(--mk-maroon-deep);
+    transform: scale(1.05);
+}
+
+.network-nav-buttons button:disabled {
+    background-color: var(--mk-line);
+    color: var(--mk-muted);
+    cursor: not-allowed;
+}
+
+/* Play Again Button */
+.play-again-btn {
+    margin: 0.5rem;
+    background-color: var(--mk-maroon);
+    padding: 10px 16px;
+    font-size: 0.9rem;
+    font-weight: bold;
+    border: none;
+    color: white;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+    text-decoration: none;
+}
+
+.play-again-btn:hover {
+    background-color: var(--mk-maroon-deep);
+}
+
+/* Score Summary */
+#score-summary {
+    font-size: 1.6rem;
+    font-weight: 900;
+    color: var(--mk-maroon);
+    margin-bottom: 1rem;
+}
+
+#score-message {
+    font-size: 1.2rem;
+    font-weight: bold;
+    margin-bottom: 1rem;
+    color: var(--mk-espresso);
+}
+
+#attempts-used {
+    font-size: 1rem;
+    color: var(--mk-muted);
+    margin-bottom: 1.5rem;
+}

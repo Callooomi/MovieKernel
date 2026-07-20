@@ -1,0 +1,261 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load custom_tags %}
+
+{% block styles %}
+<link rel="stylesheet" href="{% static 'networks/style.css' %}">
+<link rel="stylesheet" href="{% static 'css/base.css' %}">
+{% endblock %}
+
+{% block navbar_title %}Networks{% endblock %}
+
+{% block content %}
+<p id="lives">Lives: {{ lives }}</p>
+
+<!-- Step Tracker -->
+<div id="step-tracker">Selected Path: <span id="path-labels">None</span></div>
+
+<!-- Grid Container -->
+<div class="grid-wrapper">
+    <div class="grid">
+        {% for column in tiles_by_column %}
+            <div class="column" data-column="{{ forloop.counter }}">
+                {% for tile in column %}
+                    {% with locked_tile_ids|get_item:tile.id as lock_class %}
+                        <div class="tile {% if lock_class %}locked {{ lock_class }}{% endif %}"
+                             data-id="{{ tile.id }}" data-column="{{ tile.column }}"
+                             data-label="{{ tile.label }}">
+                            {{ tile.label }}
+                        </div>
+                    {% endwith %}
+                {% endfor %}
+            </div>
+        {% endfor %}
+    </div>
+</div>
+
+<div id="submit-container">
+    <button id="submit-btn">Submit Path</button>
+</div>
+
+<p id="result"></p>
+
+<div class="network-nav-buttons">
+    {% if prev_board_id %}
+        <a href="{% url 'networks:play' prev_board_id %}"><button>← Previous Network</button></a>
+    {% else %}
+        <button disabled>← Previous Network</button>
+    {% endif %}
+    {% if next_board_id %}
+        <a href="{% url 'networks:play' next_board_id %}"><button>Next Network →</button></a>
+    {% else %}
+        <button disabled>Next Network →</button>
+    {% endif %}
+</div>
+
+<!-- Game Over Modal -->
+<div id="game-over-modal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2>Game Over</h2>
+            <button class="close" onclick="closeModal()">&times;</button>
+        </div>
+        <div class="modal-body" style="text-align:center">
+            <p id="score-summary"></p>
+            <p id="score-message"></p>
+            <p id="attempts-used"></p>
+
+            <div style="margin-top: 1.5rem;">
+                <button id="reveal-btn" onclick="revealAnswers()" class="play-again-btn">Reveal Answers</button>
+                <button onclick="copyShareLink()" class="play-again-btn">Copy Link</button>
+            </div>
+
+            <div style="margin-top: 1rem;">
+                <a id="twitter-share" target="_blank"><button class="play-again-btn">Share on Twitter</button></a>
+                <a id="whatsapp-share" target="_blank"><button class="play-again-btn">Share on WhatsApp</button></a>
+            </div>
+
+            <div class="network-nav-buttons" style="margin-top: 2rem;">
+                {% if prev_board_id %}
+                    <a href="{% url 'networks:play' prev_board_id %}"><button>← Previous Network</button></a>
+                {% endif %}
+                {% if next_board_id %}
+                    <a href="{% url 'networks:play' next_board_id %}"><button>Next Network →</button></a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+let selected = {};
+let gameOver = false;
+const stepTracker = document.getElementById('path-labels');
+
+function updateTracker() {
+    const labels = Object.keys(selected).sort().map(col => {
+        const tile = document.querySelector(`.tile[data-id="${selected[col]}"]`);
+        return tile?.dataset.label;
+    });
+    stepTracker.textContent = labels.length ? labels.join(' → ') : 'None';
+}
+
+function refreshUI() {
+    updateTracker();
+}
+
+document.querySelectorAll('.tile').forEach(tile => {
+    tile.addEventListener('click', () => {
+        if (tile.classList.contains('locked') || gameOver) return;
+        const col = tile.dataset.column;
+        document.querySelectorAll(`.tile[data-column="${col}"]`).forEach(t => t.classList.remove('selected'));
+        tile.classList.add('selected');
+        selected[col] = tile.dataset.id;
+        refreshUI();
+    });
+});
+
+document.getElementById('submit-btn').addEventListener('click', () => {
+    if (gameOver) return;
+
+    if (Object.keys(selected).length !== 5) {
+        document.getElementById('result').innerText = "Please select one tile per column.";
+        return;
+    }
+
+    const formData = new URLSearchParams();
+    Object.values(selected).forEach(id => formData.append('tile_ids', id));
+
+    fetch("{% url 'networks:submit' board.id %}", {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': '{{ csrf_token }}',
+            'Content-Type': 'application/x-www-form-urlencoded'
+        },
+        body: formData
+    })
+    .then(res => res.json())
+    .then(data => {
+        document.getElementById('result').innerText = data.message;
+
+        if (data.success) {
+            const selectedTiles = document.querySelectorAll('.tile.selected');
+            const lockedTiles = document.querySelectorAll('.tile.locked').length;
+            const solvedCount = lockedTiles / 5;
+            const colorClass = `locked-${Math.min(solvedCount + 1, 6)}`;
+
+            selectedTiles.forEach(tile => {
+                tile.classList.remove('selected');
+                tile.classList.add('locked', colorClass);
+
+                const column = tile.closest('.column');
+                column.removeChild(tile);
+
+                const lockedInColumn = column.querySelectorAll('.tile.locked');
+                if (lockedInColumn.length > 0) {
+                    lockedInColumn[lockedInColumn.length - 1].after(tile);
+                } else {
+                    column.prepend(tile);
+                }
+            });
+
+            setTimeout(() => {
+                selected = {};
+                refreshUI();
+                const totalLocked = document.querySelectorAll('.tile.locked').length;
+                if (totalLocked === 30) {
+                    endGame({solved: 6, lives: {{ lives }}});
+                }
+            }, 50);
+        } else {
+            document.getElementById('lives').innerText = `Lives: ${data.lives}`;
+            if (data.lives <= 0) {
+                const lockedCount = document.querySelectorAll('.tile.locked').length / 5;
+                endGame({solved: lockedCount, lives: 0});
+            }
+        }
+    })
+    .catch(err => {
+        console.error("Submit error:", err);
+        document.getElementById('result').innerText = "An error occurred.";
+    });
+});
+
+function endGame({solved, lives}) {
+    gameOver = true;
+    document.getElementById('submit-container').style.display = 'none';
+    document.querySelectorAll('.tile.selected').forEach(t => t.classList.remove('selected'));
+
+    document.getElementById('score-summary').innerText = `Total Correct Paths: ${solved}/6`;
+    document.getElementById('attempts-used').innerText = `Total Incorrect Attempts Used: ${3 - lives}/3`;
+
+    let message = '';
+    if (solved === 6) message = "Perfect! You nailed it!";
+    else if (solved === 5) message = "So close! Just one more!";
+    else if (solved === 0) message = "Give it another go!";
+    else message = "Keep trying!";
+
+    document.getElementById('score-message').innerText = message;
+
+    if (solved === 6) {
+        document.getElementById('reveal-btn').style.display = 'none';
+    } else {
+        document.getElementById('reveal-btn').style.display = 'inline-block';
+    }
+
+    const link = window.location.href;
+    const shareText = `I scored ${solved}/6 on Network #{{ board.id }}!\n${link}`;
+    document.getElementById('twitter-share').href = `https://twitter.com/intent/tweet?text=${encodeURIComponent(shareText)}`;
+    document.getElementById('whatsapp-share').href = `https://wa.me/?text=${encodeURIComponent(shareText)}`;
+
+    document.getElementById('game-over-modal').style.display = 'flex';
+}
+
+function closeModal() {
+    document.getElementById('game-over-modal').style.display = 'none';
+}
+
+function copyShareLink() {
+    navigator.clipboard.writeText(window.location.href).then(() => {
+        alert("Link copied to clipboard!");
+    });
+}
+
+function revealAnswers() {
+    fetch("{% url 'networks:reveal' board.id %}")
+        .then(res => res.json())
+        .then(data => {
+            data.paths.forEach((path, i) => {
+                const className = `locked-${Math.min(i + 1, 6)}`;
+                path.forEach(tileId => {
+                    const tile = document.querySelector(`.tile[data-id="${tileId}"]`);
+                    if (tile && !tile.classList.contains('locked')) {
+                        tile.classList.add('locked', className);
+
+                        const column = tile.closest('.column');
+                        column.removeChild(tile);
+
+                        const lockedInColumn = column.querySelectorAll('.tile.locked');
+                        if (lockedInColumn.length > 0) {
+                            lockedInColumn[lockedInColumn.length - 1].after(tile);
+                        } else {
+                            column.prepend(tile);
+                        }
+                    }
+                });
+            });
+        })
+        .catch(err => {
+            console.error("Reveal error:", err);
+        });
+}
+
+refreshUI();
+
+{% if game_over %}
+document.addEventListener('DOMContentLoaded', () => {
+    endGame({solved: {{ solved_count }}, lives: {{ lives }}});
+});
+{% endif %}
+</script>
+{% endblock %}

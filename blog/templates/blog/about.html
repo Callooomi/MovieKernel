@@ -1,0 +1,25 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block styles %}
+<link rel="stylesheet" href="{% static 'css/base.css' %}">
+<link rel="stylesheet" href="{% static 'blog/blog.css' %}">
+{% endblock %}
+
+{% block content %}
+<article class="mk-article">
+  <header class="mk-article-header">
+    <span class="mk-chip">About</span>
+    <h1>MovieKernel</h1>
+  </header>
+  <div class="mk-article-body">
+    <p>
+      MovieKernel is where I dig into the numbers behind the movies &mdash; box
+      office, ratings, runtimes, genres &mdash; and turn them into articles and
+      games. Edit this page anytime by replacing the copy in
+      <code>blog/templates/blog/about.html</code>.
+    </p>
+  </div>
+  <a class="mk-back" href="{% url 'blog:home' %}">&larr; Back to all articles</a>
+</article>
+{% endblock %}

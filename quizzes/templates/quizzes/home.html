@@ -1,0 +1,65 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block page_title %}Quizzes · MovieKernel{% endblock %}
+
+{% block styles %}
+<link rel="stylesheet" href="{% static 'css/base.css' %}">
+<link rel="stylesheet" href="{% static 'blog/blog.css' %}">
+<link rel="stylesheet" href="{% static 'quizzes/quizzes.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="mk-feed">
+
+  <header class="mk-masthead">
+    <h1 class="mk-masthead-title">Quizzes</h1>
+    <p class="mk-masthead-tagline">Put your movie knowledge to the test.</p>
+  </header>
+
+  {% if featured %}
+  <a class="mk-featured" href="{{ featured.get_absolute_url }}">
+    <div class="mk-featured-media">
+      {% if featured.hero_image %}
+        <img src="{{ featured.hero_image.url }}" alt="{{ featured.title }}">
+      {% else %}
+        <span class="mk-media-fallback" aria-hidden="true">MK</span>
+      {% endif %}
+    </div>
+    <div class="mk-featured-body">
+      {% if featured.tag %}<span class="mk-chip">{{ featured.tag }}</span>{% endif %}
+      <h1 class="mk-featured-title">{{ featured.title }}</h1>
+      {% if featured.headline %}<p class="mk-featured-excerpt">{{ featured.headline }}</p>{% endif %}
+      <p class="mk-quiz-meta">{{ featured.questions.count }} question{{ featured.questions.count|pluralize }} · {{ featured.get_quiz_type_display }}</p>
+      <span class="mk-readmore">Start quiz &rarr;</span>
+    </div>
+  </a>
+  {% endif %}
+
+  <div class="mk-card-list">
+    {% for quiz in quizzes %}
+    <a class="mk-card" href="{{ quiz.get_absolute_url }}">
+      <span class="mk-node" aria-hidden="true"></span>
+      <div class="mk-card-media">
+        {% if quiz.hero_image %}
+          <img src="{{ quiz.hero_image.url }}" alt="{{ quiz.title }}">
+        {% else %}
+          <span class="mk-media-fallback" aria-hidden="true">MK</span>
+        {% endif %}
+      </div>
+      <div class="mk-card-body">
+        {% if quiz.tag %}<span class="mk-chip mk-chip-sm">{{ quiz.tag }}</span>{% endif %}
+        <h2 class="mk-card-title">{{ quiz.title }}</h2>
+        {% if quiz.headline %}<p class="mk-card-excerpt">{{ quiz.headline }}</p>{% endif %}
+        <p class="mk-quiz-meta">{{ quiz.questions.count }} question{{ quiz.questions.count|pluralize }} · {{ quiz.get_quiz_type_display }}</p>
+      </div>
+    </a>
+    {% empty %}
+      {% if not featured %}
+      <p class="mk-empty">No quizzes yet &mdash; add your first one in the admin under <strong>Quizzes</strong>.</p>
+      {% endif %}
+    {% endfor %}
+  </div>
+
+</div>
+{% endblock %}

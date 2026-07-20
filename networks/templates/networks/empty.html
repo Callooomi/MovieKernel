@@ -1,0 +1,16 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block styles %}
+<link rel="stylesheet" href="{% static 'networks/style.css' %}">
+<link rel="stylesheet" href="{% static 'css/base.css' %}">
+{% endblock %}
+
+{% block navbar_title %}Networks{% endblock %}
+
+{% block content %}
+<div style="max-width:600px;margin:3rem auto;text-align:center;">
+  <h2 style="font-family:var(--mk-serif);color:var(--mk-espresso);">No networks yet</h2>
+  <p style="color:var(--mk-muted);">Add a board in the admin (with today's date or earlier) and it'll appear here.</p>
+</div>
+{% endblock %}

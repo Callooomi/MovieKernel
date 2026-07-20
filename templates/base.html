@@ -1,0 +1,119 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{% block page_title %}MovieKernel{% endblock %}</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+
+    {% block styles %}
+    <link rel="stylesheet" href="{% static 'css/base.css' %}">
+    {% endblock %}
+</head>
+<body>
+    <nav class="mk-navbar">
+        <a href="/" class="mk-brand" aria-label="MovieKernel home">
+            <img class="mk-logo" src="{% static 'blog/moviekernel-logo.png' %}" alt="">
+            <span class="mk-wordmark">MovieKernel</span>
+        </a>
+
+        <div class="mk-navbar-title">{% block navbar_title %}{% endblock %}</div>
+
+        <div class="mk-nav-links">
+            <a href="/">Blog</a>
+            <a href="/quizzes/">Quizzes</a>
+
+            <div class="mk-dropdown" id="gamesDropdown">
+                <button class="mk-dropdown-btn" type="button" onclick="toggleGames()" aria-haspopup="true" aria-expanded="false">
+                    Games <span class="mk-caret" aria-hidden="true">▾</span>
+                </button>
+                <div class="mk-dropdown-menu" role="menu">
+                    <a href="/tenable/" role="menuitem">Tenable</a>
+                    <a href="/bingo/" role="menuitem">Bingo</a>
+                    <a href="/higherorlower/" role="menuitem">Higher or Lower</a>
+                    <a href="/networks/" role="menuitem">Networks</a>
+                </div>
+            </div>
+
+            
+            <a href="/about/">About</a>
+            <button class="mk-help-btn" type="button" onclick="openHelpModal()" aria-label="How to play the games">?</button>
+        </div>
+    </nav>
+
+    <!-- Help modal (games only) -->
+    <div id="helpModal" class="modal" role="dialog" aria-modal="true" aria-labelledby="helpModalTitle">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="helpModalTitle">How to play</h2>
+                <button class="close" type="button" onclick="closeHelpModal()" aria-label="Close">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="game-help-section">
+                    <h3>Tenable</h3>
+                    <p>Fill in as many correct answers as you can for the given category. Type a guess (suggestions appear as you type); correct answers fill the board. Find them all before your three lives run out.</p>
+                </div>
+                <div class="game-help-section">
+                    <h3>Bingo</h3>
+                    <p>Match the named actor to a square that fits them to mark it off. Complete the whole board to win. An incorrect guess skips you forward two actors; use Skip if you're stuck.</p>
+                </div>
+                <div class="game-help-section">
+                    <h3>Higher or Lower</h3>
+                    <p>Two actors are shown side by side with one stat &mdash; age, box office, leading roles, or Oscar nominations. Guess whether the hidden actor's stat is higher or lower. Keep going for as long as you can; one wrong guess ends the run.</p>
+                </div>
+                <div class="game-help-section">
+                    <h3>Networks</h3>
+                    <p>Five columns of tiles hide six connecting paths. Pick one tile per column to trace a valid path and submit it; correct paths lock in. You have three lives &mdash; find as many of the six as you can.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {% block content %}{% endblock %}
+
+    <script>
+        // Games dropdown
+        function toggleGames() {
+            const d = document.getElementById('gamesDropdown');
+            const open = d.classList.toggle('open');
+            d.querySelector('.mk-dropdown-btn').setAttribute('aria-expanded', open ? 'true' : 'false');
+        }
+        document.addEventListener('click', function (event) {
+            const d = document.getElementById('gamesDropdown');
+            if (d && !d.contains(event.target)) {
+                d.classList.remove('open');
+                d.querySelector('.mk-dropdown-btn').setAttribute('aria-expanded', 'false');
+            }
+        });
+
+        // Help modal
+        function openHelpModal() {
+            document.getElementById('helpModal').classList.add('show');
+            document.body.style.overflow = 'hidden';
+        }
+        function closeHelpModal() {
+            document.getElementById('helpModal').classList.remove('show');
+            document.body.style.overflow = 'auto';
+        }
+        document.getElementById('helpModal').addEventListener('click', function (event) {
+            if (event.target === this) closeHelpModal();
+        });
+        document.addEventListener('keydown', function (event) {
+            if (event.key === 'Escape') {
+                closeHelpModal();
+                const d = document.getElementById('gamesDropdown');
+                if (d) {
+                    d.classList.remove('open');
+                    d.querySelector('.mk-dropdown-btn').setAttribute('aria-expanded', 'false');
+                }
+            }
+        });
+    </script>
+
+    {% block scripts %}{% endblock %}
+</body>
+</html>

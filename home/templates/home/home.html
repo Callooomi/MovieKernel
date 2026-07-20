@@ -1,0 +1,38 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block styles %}
+<link rel="stylesheet" href="{% static 'home/home.css' %}">
+<link rel="stylesheet" href="{% static 'css/base.css' %}">
+{% endblock %}
+
+{% block navbar_title %}Games{% endblock %}
+
+{% block content %}
+<div class="hub-page page-top-pad">
+  <div class="hub-grid">
+    {% for g in games %}
+      <div class="hub-card">
+        <div class="hub-thumb">
+          {% if g.obj.image %}
+            <img src="{{ g.obj.image.url }}" alt="{{ g.obj.name }} cover">
+          {% else %}
+            <div class="hub-thumb-fallback">{{ g.obj.name|slice:":1" }}</div>
+          {% endif %}
+        </div>
+
+        <div class="hub-meta">
+          <h3 class="hub-title">{{ g.obj.name }}</h3>
+          {% if g.available %}
+            <a href="{{ g.url }}" class="btn-primary hub-play">Play</a>
+          {% else %}
+            <button class="btn-ghost hub-play" disabled>Unavailable</button>
+          {% endif %}
+        </div>
+      </div>
+    {% empty %}
+      <p>No games yet — add some in the admin.</p>
+    {% endfor %}
+  </div>
+</div>
+{% endblock %}
