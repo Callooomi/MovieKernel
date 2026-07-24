@@ -4,6 +4,10 @@
    ground, gold trim, espresso linework.
    ============================================================ */
 
+html {
+  zoom: 0.67;
+}
+
 :root {
   --mk-maroon:       #8B2A2E;
   --mk-maroon-deep:  #7A2327;
@@ -318,3 +322,15 @@ a:hover { color: var(--mk-maroon-deep); }
 @media (max-width: 720px) {
   .mk-navbar-title { display: none; }
 }
+
+
+@media (max-width: 900px) {
+  .mk-nav-links { gap: 0.6rem; }
+  .mk-nav-links a { font-size: 0.9rem; }
+}
+@media (max-width: 640px) {
+  .mk-navbar { padding: 0 1rem; }
+  .mk-nav-links { gap: 0.4rem; }
+}
+img, svg, video { max-width: 100%; height: auto; }
+html, body { overflow-x: hidden; }

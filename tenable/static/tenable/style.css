@@ -153,3 +153,13 @@
 .score-highlight { font-size: 1.3rem; font-weight: 600; color: var(--mk-maroon); margin-bottom: 0.5rem; }
 .custom-message { font-style: italic; color: var(--mk-muted); margin-bottom: 0.5rem; }
 .lives-used { color: var(--mk-muted); margin-bottom: 0.25rem; }
+
+html, body {
+  height: 100vh;
+  overflow: hidden;
+}
+.tenable-wrapper {
+  height: calc(100vh - 64px); /* 64px = navbar height */
+  overflow-y: auto;
+  justify-content: flex-start;
+}

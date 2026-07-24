@@ -7,6 +7,11 @@
     flex-wrap: wrap;
 }
 
+.grid-wrapper {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
 .column {
     display: flex;
     flex-direction: column;
@@ -25,6 +30,9 @@
     border: 2px solid transparent;
     color: #fff;
     box-shadow: 0 0 10px rgba(0,0,0,0.2);
+    word-break: break-word;
+    overflow-wrap: break-word;
+    line-height: 1.2;
 }
 
 .tile:hover {
@@ -192,4 +200,73 @@
     font-size: 1rem;
     color: var(--mk-muted);
     margin-bottom: 1.5rem;
+}
+
+@media (max-width: 600px) {
+    .grid {
+        flex-wrap: nowrap;
+        gap: 0.3rem;
+        justify-content: flex-start;
+    }
+
+    .column {
+        gap: 0.4rem;
+    }
+
+    .tile {
+        min-width: 56px;
+        padding: 0.5rem 0.3rem;
+        font-size: 0.75rem;
+        border-radius: 8px;
+    }
+
+    #step-tracker {
+        font-size: 0.85rem;
+    }
+
+    #lives {
+        font-size: 1rem;
+    }
+
+    .network-nav-buttons button,
+    .network-nav-buttons a button {
+        padding: 8px 12px;
+        font-size: 0.8rem;
+    }
+}
+
+@media (max-width: 400px) {
+    .grid {
+        gap: 0.2rem;
+    }
+
+    .tile {
+        min-width: 46px;
+        font-size: 0.62rem;
+        padding: 0.35rem 0.15rem;
+    }
+}
+
+.grid {
+  display: grid !important;
+  grid-template-columns: repeat(5, 1fr) !important;
+  gap: 0.5rem !important;
+  max-width: 100% !important;
+  margin: 0 auto 2rem !important;
+}
+.column {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 0.5rem !important;
+  min-width: 0 !important;
+}
+.tile {
+  min-width: 0 !important;
+  width: auto !important;
+}
+@media (max-width: 600px) {
+  .tile { padding: 0.5rem 0.25rem !important; font-size: 0.7rem !important; }
+}
+@media (max-width: 400px) {
+  .tile { padding: 0.4rem 0.15rem !important; font-size: 0.6rem !important; }
 }
