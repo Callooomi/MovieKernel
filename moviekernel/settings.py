@@ -6,7 +6,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 # Quick-start development settings - unsuitable for production
 # Generate a fresh one for production: https://docs.djangoproject.com/en/stable/ref/settings/#secret-key
-SECRET_KEY = os.environ.get('DJANGO_SECRET_KEY', 'django-insecure-CHANGE-ME-before-deploying-0123456789abcdef')
+SECRET_KEY = os.environ['DJANGO_SECRET_KEY']
 DEBUG = os.environ.get('DJANGO_DEBUG', 'True') == 'True'
 ALLOWED_HOSTS = ['callooomi.eu.pythonanywhere.com', 'www.moviekernel.com', 'moviekernel.com']
 CSRF_TRUSTED_ORIGINS = ['https://www.moviekernel.com', 'https://moviekernel.com']
