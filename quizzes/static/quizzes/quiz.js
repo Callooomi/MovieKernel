@@ -1,5 +1,5 @@
 (function () {
-  // ---- Multiple choice: click to lock, colour, and tally a score ----
+  // ---- Shared score tracking (used by both quiz types) ----
   var scoreEl = document.getElementById('quiz-score');
   var scoreText = document.getElementById('quiz-score-text');
   var total = scoreEl ? parseInt(scoreEl.dataset.total, 10) : 0;
@@ -16,6 +16,7 @@
     }
   }
 
+  // ---- Multiple choice: click to lock, colour, and tally a score ----
   document.querySelectorAll('[data-choices]').forEach(function (group) {
     var buttons = group.querySelectorAll('.mk-choice');
     buttons.forEach(function (btn) {
@@ -41,19 +42,41 @@
     });
   });
 
-  // ---- Click to reveal ----
+  // ---- Click to reveal, with self-marked scoring ----
   document.querySelectorAll('[data-reveal-btn]').forEach(function (btn) {
-    var answer = btn.parentElement.querySelector('[data-reveal-answer]');
+    var wrapper = btn.parentElement;
+    var answer = wrapper.querySelector('[data-reveal-answer]');
+    var scoreRow = wrapper.querySelector('[data-reveal-score]');
+
     btn.addEventListener('click', function () {
       if (!answer) return;
       var hidden = answer.hasAttribute('hidden');
       if (hidden) {
         answer.removeAttribute('hidden');
         btn.textContent = 'Hide answer';
+        // reveal the yes/no prompt too, unless this question's already been marked
+        if (scoreRow && !scoreRow.dataset.marked) {
+          scoreRow.removeAttribute('hidden');
+        }
       } else {
         answer.setAttribute('hidden', '');
         btn.textContent = 'Reveal answer';
       }
     });
+
+    if (scoreRow) {
+      scoreRow.querySelectorAll('[data-reveal-correct]').forEach(function (markBtn) {
+        markBtn.addEventListener('click', function () {
+          if (scoreRow.dataset.marked) return;  // lock after first pick
+          scoreRow.dataset.marked = '1';
+
+          var wasCorrect = markBtn.dataset.revealCorrect === '1';
+          markBtn.classList.add('picked');
+          if (wasCorrect) correct += 1;
+          answered += 1;
+          updateScore();
+        });
+      });
+    }
   });
 })();

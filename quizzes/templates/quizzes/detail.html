@@ -24,7 +24,7 @@
   <img class="mk-article-hero" src="{{ quiz.hero_image.url }}" alt="{{ quiz.title }}">
   {% endif %}
 
-  {% if quiz.is_multiple_choice and total %}
+  {% if total %}
   <div id="quiz-score" class="mk-quiz-score" data-total="{{ total }}">
     <span id="quiz-score-text">Answered 0 / {{ total }}</span>
   </div>
@@ -50,6 +50,11 @@
       {% else %}
         <button type="button" class="mk-reveal-btn" data-reveal-btn>Reveal answer</button>
         <div class="mk-reveal-answer" data-reveal-answer hidden>{{ question.reveal_answer|linebreaksbr }}</div>
+        <div class="mk-reveal-score" data-reveal-score hidden>
+          <span class="mk-reveal-score-prompt">Did you get it right?</span>
+          <button type="button" class="mk-reveal-yes" data-reveal-correct="1">Yes</button>
+          <button type="button" class="mk-reveal-no" data-reveal-correct="0">No</button>
+        </div>
       {% endif %}
     </li>
     {% endfor %}
