@@ -1,6 +1,6 @@
 from django.shortcuts import render, get_object_or_404, redirect
 from django.utils import timezone
-from .models import TenableQuestion, TenableAnswer, MovieTitle
+from .models import TenableQuestion, TenableAnswer, MovieTitle, ActorName
 
 
 def latest_tenable(request):
@@ -84,7 +84,14 @@ def play_tenable(request, question_id):
         if ans.answer_text.lower() in correct_guesses:
             correct_answers_display.append(ans.answer_text)
 
-    movie_titles = list(MovieTitle.objects.values_list('title', flat=True).distinct())
+    # Autocomplete source depends on the question's type. Kept the context
+    # variable named `movie_titles` (rather than renaming it everywhere) so
+    # the template and its JS didn't need any changes at all — it just holds
+    # whichever list is appropriate for this particular question.
+    if question.question_type == TenableQuestion.QuestionType.ACTOR:
+        movie_titles = list(ActorName.objects.values_list('name', flat=True).distinct())
+    else:
+        movie_titles = list(MovieTitle.objects.values_list('title', flat=True).distinct())
 
     score_summary = f"{len(correct_guesses)}/{len(all_answers)}"
     incorrect_attempts = 3 - lives

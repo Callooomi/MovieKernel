@@ -3,6 +3,17 @@ from django.utils import timezone
 
 
 class TenableQuestion(models.Model):
+    class QuestionType(models.TextChoices):
+        MOVIE = 'movie', 'Movie'
+        ACTOR = 'actor', 'Actor'
+
+    question_type = models.CharField(
+        max_length=10,
+        choices=QuestionType.choices,
+        default=QuestionType.MOVIE,
+        help_text="Whether the answers to this puzzle are movie titles or actor names — "
+                  "controls which autocomplete list players see.",
+    )
     question_text = models.CharField(max_length=255)
     description = models.TextField(
         blank=True,
@@ -30,3 +41,10 @@ class MovieTitle(models.Model):
 
     def __str__(self):
         return self.title
+
+
+class ActorName(models.Model):
+    name = models.CharField(max_length=255)
+
+    def __str__(self):
+        return self.name
