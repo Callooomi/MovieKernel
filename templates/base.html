@@ -3,6 +3,7 @@
 <html lang="en">
 <head>
     <link rel="icon" type="image/png" href="{% static 'blog/Favicon.png' %}">
+    <link rel="apple-touch-icon" href="{% static 'blog/Favicon.png' %}">
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>{% block page_title %}MovieKernel{% endblock %}</title>
@@ -14,6 +15,8 @@
     {% block styles %}
     <link rel="stylesheet" href="{% static 'css/base.css' %}">
     {% endblock %}
+
+    {% block ads_head %}{% endblock %}
 </head>
 <body>
     <nav class="mk-navbar">

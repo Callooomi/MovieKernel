@@ -26,8 +26,8 @@
   color: var(--mk-muted);
   font-size: 0.95rem;
   max-width: 520px;
-  margin: 0 auto 1.1rem;
-  line-height: 1.5;
+  margin: 0 auto 0.7rem;
+  line-height: 1.35;
 }
 
 /* Lives & control row */
@@ -53,8 +53,12 @@
   gap: 0.8rem;
   margin-top: 0.6rem;
 }
-.tenable-wrapper input[type="text"] {
+.guess-input-wrap {
+  position: relative;
   flex: 1;
+}
+.tenable-wrapper input[type="text"] {
+  width: 100%;
   padding: 10px 14px;
   border-radius: 8px;
   border: 1px solid var(--mk-line);
@@ -66,6 +70,32 @@
 .tenable-wrapper input[type="text"]:focus {
   border-color: var(--mk-maroon);
   box-shadow: 0 0 0 3px rgba(139, 42, 46, 0.15);
+}
+.guess-suggestions {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  right: 0;
+  z-index: 20;
+  list-style: none;
+  margin: 0;
+  padding: 0.3rem 0;
+  background: var(--mk-ivory);
+  border: 1px solid var(--mk-line);
+  border-radius: 8px;
+  max-height: 220px;
+  overflow-y: auto;
+  box-shadow: 0 8px 20px rgba(58, 36, 24, 0.15);
+}
+.guess-suggestions li {
+  padding: 0.5rem 0.9rem;
+  cursor: pointer;
+  text-align: left;
+  color: var(--mk-espresso);
+  font-size: 0.98rem;
+}
+.guess-suggestions li:hover {
+  background-color: var(--mk-cream);
 }
 
 .tenable-wrapper button[type="submit"],
@@ -154,12 +184,18 @@
 .custom-message { font-style: italic; color: var(--mk-muted); margin-bottom: 0.5rem; }
 .lives-used { color: var(--mk-muted); margin-bottom: 0.25rem; }
 
-html, body {
-  height: 100vh;
+html {
+  height: calc(100vh / 0.67);
+  overflow: hidden;
+}
+body {
+  --extra-zoom: 0.85; /* smaller number = zooms this whole page out further. Tweak and redeploy until nothing needs to scroll */
+  zoom: var(--extra-zoom);
+  height: calc(100vh / (0.67 * var(--extra-zoom)));
   overflow: hidden;
 }
 .tenable-wrapper {
-  height: calc(100vh - 64px); /* 64px = navbar height */
+  height: calc((100vh / (0.67 * var(--extra-zoom))) - 64px); /* 64px = navbar height */
   overflow-y: auto;
   justify-content: flex-start;
 }

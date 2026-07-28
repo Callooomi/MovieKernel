@@ -6,6 +6,10 @@
 <link rel="stylesheet" href="{% static 'css/base.css' %}">
 {% endblock %}
 
+{% block ads_head %}
+{% include "partials/adsense.html" %}
+{% endblock %}
+
 {% block navbar_title %}Games{% endblock %}
 
 {% block content %}

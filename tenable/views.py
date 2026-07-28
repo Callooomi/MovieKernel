@@ -1,4 +1,5 @@
 from django.shortcuts import render, get_object_or_404, redirect
+from django.http import JsonResponse
 from django.utils import timezone
 from .models import TenableQuestion, TenableAnswer, MovieTitle, ActorName
 
@@ -13,6 +14,31 @@ def latest_tenable(request):
     if not q:
         return render(request, 'tenable/empty.html')
     return redirect('tenable:play', question_id=q.id)
+
+
+def guess_suggestions(request, question_id):
+    """Small JSON endpoint: returns up to 20 matching titles/names for the
+    guess box, server-side, instead of shipping the entire list to the
+    browser and filtering it there."""
+    today = timezone.localdate()
+    question = get_object_or_404(TenableQuestion, id=question_id, release_date__lte=today)
+
+    q = request.GET.get('q', '').strip()
+    if len(q) < 2:
+        return JsonResponse({'results': []})
+
+    if question.question_type == TenableQuestion.QuestionType.ACTOR:
+        results = list(
+            ActorName.objects.filter(name__istartswith=q)
+            .order_by('name').values_list('name', flat=True)[:20]
+        )
+    else:
+        results = list(
+            MovieTitle.objects.filter(title__istartswith=q)
+            .order_by('title').values_list('title', flat=True)[:20]
+        )
+
+    return JsonResponse({'results': results})
 
 
 def play_tenable(request, question_id):
@@ -84,15 +110,6 @@ def play_tenable(request, question_id):
         if ans.answer_text.lower() in correct_guesses:
             correct_answers_display.append(ans.answer_text)
 
-    # Autocomplete source depends on the question's type. Kept the context
-    # variable named `movie_titles` (rather than renaming it everywhere) so
-    # the template and its JS didn't need any changes at all — it just holds
-    # whichever list is appropriate for this particular question.
-    if question.question_type == TenableQuestion.QuestionType.ACTOR:
-        movie_titles = list(ActorName.objects.values_list('name', flat=True).distinct())
-    else:
-        movie_titles = list(MovieTitle.objects.values_list('title', flat=True).distinct())
-
     score_summary = f"{len(correct_guesses)}/{len(all_answers)}"
     incorrect_attempts = 3 - lives
 
@@ -116,7 +133,6 @@ def play_tenable(request, question_id):
         'reveal': reveal,
         'all_answers': all_answers,
         'ordered_display_answers': ordered_display_answers,
-        'movie_titles': movie_titles,
         'prev_id': prev_id,
         'next_id': next_id,
         'score_summary': score_summary,

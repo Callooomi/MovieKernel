@@ -6,6 +6,10 @@
 <link rel="stylesheet" href="{% static 'css/base.css' %}">
 {% endblock %}
 
+{% block ads_head %}
+{% include "partials/adsense.html" %}
+{% endblock %}
+
 {% block navbar_title %}
     Tenable
 {% endblock %}
@@ -36,12 +40,10 @@
     {% if not is_game_over and not reveal %}
     <form method="post" class="form-inline" id="guess-form">
         {% csrf_token %}
-        <input type="text" name="guess" placeholder="Your guess" list="movie-titles" autocomplete="off" required>
-        <datalist id="movie-titles">
-            {% for title in movie_titles %}
-            <option value="{{ title }}"></option>
-            {% endfor %}
-        </datalist>
+        <div class="guess-input-wrap">
+            <input type="text" name="guess" placeholder="Your guess" autocomplete="off" required>
+            <ul class="guess-suggestions" id="guess-suggestions" hidden></ul>
+        </div>
         <button type="submit">Submit Guess</button>
     </form>
     {% endif %}
@@ -99,33 +101,59 @@
 
 <script>
 
-    const movieTitles = [
-        {% for title in movie_titles %}
-        "{{ title|escapejs }}",
-        {% endfor %}
-    ];
-
+    // ---- Server-backed guess suggestions (replaces the old datalist that
+    // shipped the entire title/name list to the browser on every page load) ----
     const input = document.querySelector('input[name="guess"]');
-    const dataList = document.getElementById('movie-titles');
+    const suggestionsBox = document.getElementById('guess-suggestions');
+    const suggestionsUrl = "{% url 'tenable:guess_suggestions' question.id %}";
+    let suggestDebounce = null;
 
-    if (input && dataList) {
-        input.addEventListener('input', function () {
-            const val = this.value.trim().toLowerCase();
-            dataList.innerHTML = '';
+    function hideSuggestions() {
+        if (!suggestionsBox) return;
+        suggestionsBox.innerHTML = '';
+        suggestionsBox.hidden = true;
+    }
 
-            // ✅ Only show suggestions after typing at least 2 characters
-            if (val.length < 2) return;
-
-            const filtered = movieTitles.filter(title =>
-                title.toLowerCase().startsWith(val)
-            );
-
-            // Add filtered results to datalist
-            filtered.forEach(title => {
-                const option = document.createElement('option');
-                option.value = title;
-                dataList.appendChild(option);
+    function showSuggestions(results) {
+        if (!suggestionsBox) return;
+        suggestionsBox.innerHTML = '';
+        if (!results.length) {
+            hideSuggestions();
+            return;
+        }
+        results.forEach(function (title) {
+            const li = document.createElement('li');
+            li.textContent = title;
+            li.addEventListener('mousedown', function (e) {
+                e.preventDefault(); // fires before the input's blur event
+                input.value = title;
+                hideSuggestions();
             });
+            suggestionsBox.appendChild(li);
+        });
+        suggestionsBox.hidden = false;
+    }
+
+    if (input && suggestionsBox) {
+        input.addEventListener('input', function () {
+            const val = this.value.trim();
+            clearTimeout(suggestDebounce);
+
+            if (val.length < 2) {
+                hideSuggestions();
+                return;
+            }
+
+            suggestDebounce = setTimeout(function () {
+                fetch(suggestionsUrl + '?q=' + encodeURIComponent(val))
+                    .then(function (response) { return response.json(); })
+                    .then(function (data) { showSuggestions(data.results || []); })
+                    .catch(function () { hideSuggestions(); });
+            }, 200);
+        });
+
+        input.addEventListener('blur', function () {
+            setTimeout(hideSuggestions, 100);
         });
     }
 

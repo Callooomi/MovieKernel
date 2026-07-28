@@ -6,6 +6,10 @@
 <link rel="stylesheet" href="{% static 'blog/blog.css' %}">
 {% endblock %}
 
+{% block ads_head %}
+{% include "partials/adsense.html" %}
+{% endblock %}
+
 {% block content %}
 <article class="mk-article">
   <header class="mk-article-header">
