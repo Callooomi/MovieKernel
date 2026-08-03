@@ -160,9 +160,17 @@
     // Prevent double submission
     let isAnimating = false;
 
+    function lockGuessInput() {
+        input.readOnly = true;
+        const submitBtn = document.querySelector('#guess-form button[type="submit"]');
+        if (submitBtn) submitBtn.disabled = true;
+        hideSuggestions();
+    }
+
     const showFlashingEffect = (correctAnswerIndex) => {
         if (isAnimating) return;
         isAnimating = true;
+        lockGuessInput();
 
         const answerItems = document.querySelectorAll('.answers-box li');
         let currentIndex = answerItems.length;
@@ -191,14 +199,30 @@
     const showIncorrectEffect = () => {
         if (isAnimating) return;
         isAnimating = true;
+        lockGuessInput();
 
         const answerItems = document.querySelectorAll('.answers-box li');
-        answerItems.forEach(item => item.classList.add('flash-incorrect'));
-        setTimeout(() => {
-            answerItems.forEach(item => item.classList.remove('flash-incorrect'));
-            isAnimating = false;
-            document.getElementById('guess-form').submit();
-        }, 800);
+        let currentIndex = answerItems.length;
+
+        // Same climb-through-the-list animation as a correct guess — but since
+        // nothing matches, it runs all the way to the top, then the whole
+        // board flashes red together before the life is lost.
+        const flashInterval = setInterval(() => {
+            answerItems.forEach(item => item.classList.remove('flashing'));
+
+            if (currentIndex <= 0) {
+                clearInterval(flashInterval);
+                answerItems.forEach(item => item.classList.add('flash-incorrect'));
+                setTimeout(() => {
+                    answerItems.forEach(item => item.classList.remove('flash-incorrect'));
+                    isAnimating = false;
+                    document.getElementById('guess-form').submit();
+                }, 800);
+            } else {
+                answerItems[currentIndex - 1].classList.add('flashing');
+                currentIndex--;
+            }
+        }, 600);
     };
 
     const form = document.getElementById('guess-form');

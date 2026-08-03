@@ -1,5 +1,6 @@
 from django.shortcuts import render, get_object_or_404, redirect
 from django.http import JsonResponse
+from django.db.models import Case, When, Value, IntegerField
 from django.utils import timezone
 from .models import TenableQuestion, TenableAnswer, MovieTitle, ActorName
 
@@ -29,13 +30,29 @@ def guess_suggestions(request, question_id):
 
     if question.question_type == TenableQuestion.QuestionType.ACTOR:
         results = list(
-            ActorName.objects.filter(name__istartswith=q)
-            .order_by('name').values_list('name', flat=True)[:20]
+            ActorName.objects.filter(name__icontains=q)
+            .annotate(
+                starts_with_query=Case(
+                    When(name__istartswith=q, then=Value(0)),
+                    default=Value(1),
+                    output_field=IntegerField(),
+                )
+            )
+            .order_by('starts_with_query', 'name')
+            .values_list('name', flat=True)[:20]
         )
     else:
         results = list(
-            MovieTitle.objects.filter(title__istartswith=q)
-            .order_by('title').values_list('title', flat=True)[:20]
+            MovieTitle.objects.filter(title__icontains=q)
+            .annotate(
+                starts_with_query=Case(
+                    When(title__istartswith=q, then=Value(0)),
+                    default=Value(1),
+                    output_field=IntegerField(),
+                )
+            )
+            .order_by('starts_with_query', 'title')
+            .values_list('title', flat=True)[:20]
         )
 
     return JsonResponse({'results': results})
