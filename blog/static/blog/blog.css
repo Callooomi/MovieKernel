@@ -280,3 +280,36 @@
   .mk-card-title { font-size: 1.1rem; }
   .mk-navbar-title { display: none; }
 }
+
+//* Staggered fade-in for feed cards (blog + quizzes both use these classes) */
+.mk-featured,
+.mk-card-list .mk-card {
+  opacity: 0;
+  animation: mkCardFadeIn 0.3s ease forwards;
+}
+
+.mk-featured { animation-delay: 0s; }
+
+.mk-card-list .mk-card:nth-child(1) { animation-delay: 0.03s; }
+.mk-card-list .mk-card:nth-child(2) { animation-delay: 0.06s; }
+.mk-card-list .mk-card:nth-child(3) { animation-delay: 0.09s; }
+.mk-card-list .mk-card:nth-child(4) { animation-delay: 0.12s; }
+.mk-card-list .mk-card:nth-child(5) { animation-delay: 0.15s; }
+.mk-card-list .mk-card:nth-child(6) { animation-delay: 0.18s; }
+.mk-card-list .mk-card:nth-child(7) { animation-delay: 0.21s; }
+.mk-card-list .mk-card:nth-child(8) { animation-delay: 0.24s; }
+.mk-card-list .mk-card:nth-child(n+9) { animation-delay: 0.27s; }
+
+@keyframes mkCardFadeIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Respect visitors who've asked their device to reduce motion */
+@media (prefers-reduced-motion: reduce) {
+  .mk-featured,
+  .mk-card-list .mk-card {
+    animation: none;
+    opacity: 1;
+  }
+}

@@ -33,6 +33,14 @@ html, body {
 }
 
 body {
+  animation: fadeInPage 0.4s ease-in;
+}
+@keyframes fadeInPage {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+body {
   font-family: var(--mk-sans);
   background-color: var(--mk-cream);
   color: var(--mk-espresso);
@@ -128,6 +136,10 @@ a:hover { color: var(--mk-maroon-deep); }
   color: var(--mk-maroon);
   border-bottom-color: var(--mk-gold);
 }
+.mk-nav-links a.active {
+  color: var(--mk-maroon);
+  border-bottom-color: var(--mk-gold);
+}
 
 .mk-help-btn {
   width: 30px;
@@ -165,6 +177,7 @@ a:hover { color: var(--mk-maroon-deep); }
   transition: color 0.15s ease, border-color 0.15s ease;
 }
 .mk-dropdown-btn:hover { color: var(--mk-maroon); border-bottom-color: var(--mk-gold); }
+.mk-dropdown-btn.active { color: var(--mk-maroon); border-bottom-color: var(--mk-gold); }
 
 .mk-caret { font-size: 0.7rem; transition: transform 0.15s ease; }
 .mk-dropdown.open .mk-caret { transform: rotate(180deg); }
@@ -200,11 +213,12 @@ a:hover { color: var(--mk-maroon-deep); }
 }
 .mk-dropdown-menu a:last-child { border-bottom: none; }
 .mk-dropdown-menu a:hover { background: var(--mk-cream); color: var(--mk-maroon); }
+.mk-dropdown-menu a.active { background: var(--mk-cream); color: var(--mk-maroon); }
 
 /* ============================ Modal ============================ */
 
 .modal {
-  display: none;
+  display: flex;
   position: fixed;
   inset: 0;
   z-index: 10000;
@@ -213,8 +227,14 @@ a:hover { color: var(--mk-maroon-deep); }
   justify-content: center;
   align-items: center;
   padding: 1rem;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.25s ease, visibility 0.25s ease;
 }
-.modal.show { display: flex; }
+.modal.show {
+  opacity: 1;
+  visibility: visible;
+}
 
 .modal-content {
   background-color: var(--mk-ivory);
@@ -226,6 +246,11 @@ a:hover { color: var(--mk-maroon-deep); }
   overflow-y: auto;
   box-shadow: 0 24px 60px rgba(58, 36, 24, 0.35);
   border: 1px solid var(--mk-line);
+  transform: scale(0.95) translateY(10px);
+  transition: transform 0.25s ease;
+}
+.modal.show .modal-content {
+  transform: scale(1) translateY(0);
 }
 
 .modal-header {
@@ -334,3 +359,172 @@ a:hover { color: var(--mk-maroon-deep); }
 }
 img, svg, video { max-width: 100%; height: auto; }
 html, body { overflow-x: hidden; }
+
+/* ============================ 404 page ============================ */
+
+.mk-404-wrapper {
+  max-width: 600px;
+  margin: 0 auto;
+  padding: clamp(3rem, 10vw, 6rem) 1.5rem 4rem;
+  text-align: center;
+}
+
+.mk-404-code {
+  display: block;
+  font-family: var(--mk-serif);
+  font-weight: 600;
+  font-size: clamp(4rem, 15vw, 7rem);
+  color: var(--mk-maroon);
+  line-height: 1;
+  margin-bottom: 0.5rem;
+  animation: mkGlitchFlicker 4s infinite;
+}
+
+@keyframes mkGlitchFlicker {
+  0%, 92%, 100% {
+    text-shadow: none;
+    transform: translate(0, 0);
+  }
+  93% {
+    text-shadow: -2px 0 var(--mk-gold), 2px 0 var(--mk-maroon-deep);
+    transform: translate(-1px, 0);
+  }
+  94% {
+    text-shadow: 2px 0 var(--mk-gold), -2px 0 var(--mk-maroon-deep);
+    transform: translate(1px, 0);
+  }
+  95%, 100% {
+    text-shadow: none;
+    transform: translate(0, 0);
+  }
+}
+
+.mk-404-title {
+  font-family: var(--mk-serif);
+  font-weight: 600;
+  font-size: clamp(1.6rem, 4vw, 2.2rem);
+  color: var(--mk-espresso);
+  margin: 0 0 0.75rem;
+}
+
+.mk-404-message {
+  color: var(--mk-muted);
+  font-size: 1.05rem;
+  margin: 0 0 0.5rem;
+}
+
+.mk-404-subtext {
+  color: var(--mk-muted);
+  font-size: 0.9rem;
+  font-style: italic;
+  margin: 0 0 2rem;
+  opacity: 0.85;
+}
+
+/* ---- Red pill / blue pill choice ---- */
+.mk-pill-choice {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 1rem;
+}
+
+.mk-pill {
+  font-family: inherit;
+  font-weight: 700;
+  font-size: 0.95rem;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  border: none;
+  border-radius: 999px;
+  padding: 0.85rem 1.8rem;
+  cursor: pointer;
+  color: #fff;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+.mk-pill:hover { transform: translateY(-2px); }
+
+.mk-pill-blue {
+  background: linear-gradient(135deg, #2E6FE0, #1A4FB8);
+  box-shadow: 0 6px 18px rgba(46, 111, 224, 0.35);
+}
+.mk-pill-blue:hover { box-shadow: 0 10px 24px rgba(46, 111, 224, 0.45); }
+
+.mk-pill-red {
+  background: linear-gradient(135deg, #E0392E, #B81A1A);
+  box-shadow: 0 6px 18px rgba(224, 57, 46, 0.35);
+}
+.mk-pill-red:hover { box-shadow: 0 10px 24px rgba(224, 57, 46, 0.45); }
+
+.mk-pill-glitching {
+  animation: mkPillGlitch 0.35s steps(2, end);
+}
+@keyframes mkPillGlitch {
+  0%, 100% { transform: translate(0, 0); filter: none; }
+  25% { transform: translate(-2px, 1px); filter: hue-rotate(40deg); }
+  50% { transform: translate(2px, -1px); filter: hue-rotate(-40deg); }
+  75% { transform: translate(-1px, 1px); filter: hue-rotate(20deg); }
+}
+
+/* ---- Matrix rain takeover ---- */
+.mk-matrix-overlay {
+  display: block;
+  position: fixed;
+  inset: 0;
+  z-index: 20000;
+  background: #000;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.3s ease, visibility 0.3s ease;
+}
+.mk-matrix-overlay.show {
+  opacity: 1;
+  visibility: visible;
+}
+
+#matrix-canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.mk-matrix-wake {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1.5rem;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 1s ease;
+}
+.mk-matrix-wake.show {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.mk-matrix-wake-text {
+  font-family: monospace;
+  font-size: clamp(2rem, 6vw, 3.5rem);
+  color: #3EFF6D;
+  text-shadow: 0 0 20px rgba(62, 255, 109, 0.7);
+  margin: 0;
+  letter-spacing: 0.05em;
+}
+
+.mk-matrix-back {
+  font-family: monospace;
+  font-size: 1.1rem;
+  color: #3EFF6D;
+  border: 1.5px solid #3EFF6D;
+  border-radius: 8px;
+  padding: 0.7rem 1.5rem;
+  text-decoration: none;
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+.mk-matrix-back:hover {
+  background-color: #3EFF6D;
+  color: #000;
+}

@@ -16,6 +16,7 @@
 
 {% block content %}
 <div class="tenable-wrapper">
+    <div id="groundhog-banner" class="mk-groundhog-banner">Happy Groundhog Day! 🐿️</div>
     <h2 class="question-title">{{ question.question_text }}</h2>
     {% if question.description %}<p class="question-description">{{ question.description }}</p>{% endif %}
 
@@ -49,9 +50,10 @@
     {% endif %}
 
     {% if reveal or is_game_over %}
-    <form method="post">
+    <form method="post" id="play-again-form">
         {% csrf_token %}
-        <button type="submit" name="play_again" value="true" class="play-again-btn">Play Again</button>
+        <input type="hidden" name="play_again" value="true">
+        <button type="button" class="play-again-btn" onclick="handlePlayAgainClick()">Play Again</button>
     </form>
     {% endif %}
 
@@ -99,6 +101,25 @@
   </div>
 </div>
 
+<!-- Fight Club easter egg: confirm before submitting that exact guess -->
+<div id="fight-club-modal" class="modal">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h2>Wait...</h2>
+      <button class="close" type="button" onclick="closeFightClubModal()">&times;</button>
+    </div>
+    <div class="modal-body" style="text-align:center">
+      <p>Are you sure? The first rule is... you know the rest.</p>
+      <div class="network-nav-buttons">
+        <button type="button" class="play-again-btn" onclick="confirmFightClubGuess()">Submit it anyway</button>
+        <button type="button" class="play-again-btn" onclick="closeFightClubModal()">Never mind</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Groundhog Day easter egg message now lives above the title, see .mk-groundhog-banner -->
+
 <script>
 
     // ---- Server-backed guess suggestions (replaces the old datalist that
@@ -145,6 +166,15 @@
             }
 
             suggestDebounce = setTimeout(function () {
+                const normalized = val.trim().toLowerCase();
+                if (normalized === 'malkovich' || normalized === 'john malkovich') {
+                    showSuggestions([
+                        'John Malkovich', 'John Malkovich', 'John Malkovich',
+                        'John Malkovich', 'John Malkovich', 'John Malkovich'
+                    ]);
+                    return;
+                }
+
                 fetch(suggestionsUrl + '?q=' + encodeURIComponent(val))
                     .then(function (response) { return response.json(); })
                     .then(function (data) { showSuggestions(data.results || []); })
@@ -226,25 +256,63 @@
     };
 
     const form = document.getElementById('guess-form');
+
+    function processGuess() {
+        const guess = input.value.trim().toLowerCase();
+        const correctAnswers = [
+            {% for answer in all_answers %}
+            "{{ answer|lower|escapejs }}",
+            {% endfor %}
+        ];
+        const correctAnswerIndex = correctAnswers.findIndex(answer => answer === guess) + 1;
+
+        if (correctAnswerIndex > 0) {
+            showFlashingEffect(correctAnswerIndex);
+        } else {
+            showIncorrectEffect();
+        }
+    }
+
+    function showFightClubModal() {
+        const modal = document.getElementById('fight-club-modal');
+        if (modal) modal.classList.add('show');
+    }
+    function closeFightClubModal() {
+        const modal = document.getElementById('fight-club-modal');
+        if (modal) modal.classList.remove('show');
+    }
+    function confirmFightClubGuess() {
+        closeFightClubModal();
+        processGuess();
+    }
+
     if (form) {
         form.addEventListener('submit', function (event) {
             event.preventDefault();
             if (isAnimating) return;
 
             const guess = input.value.trim().toLowerCase();
-            const correctAnswers = [
-                {% for answer in all_answers %}
-                "{{ answer|lower|escapejs }}",
-                {% endfor %}
-            ];
-            const correctAnswerIndex = correctAnswers.findIndex(answer => answer === guess) + 1;
 
-            if (correctAnswerIndex > 0) {
-                showFlashingEffect(correctAnswerIndex);
-            } else {
-                showIncorrectEffect();
+            if (guess === 'fight club') {
+                showFightClubModal();
+                return;
             }
+
+            processGuess();
         });
+    }
+
+    function handlePlayAgainClick() {
+        const banner = document.getElementById('groundhog-banner');
+        if (banner) banner.classList.add('show');
+
+        setTimeout(function () {
+            if (banner) banner.classList.remove('show');
+        }, 1000);
+
+        setTimeout(function () {
+            document.getElementById('play-again-form').submit();
+        }, 1300);
     }
 
     function copyShareLink(qNumber, score) {
@@ -260,12 +328,12 @@
 
     function showTenableModal() {
         const modal = document.getElementById('tenable-gameover-modal');
-        if (modal) modal.style.display = 'flex';
+        if (modal) modal.classList.add('show');
     }
 
     function closeTenableModal() {
         const modal = document.getElementById('tenable-gameover-modal');
-        if (modal) modal.style.display = 'none';
+        if (modal) modal.classList.remove('show');
     }
 
     function setRevealClickedFlag() {

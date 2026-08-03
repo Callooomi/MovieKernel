@@ -98,6 +98,25 @@
   background-color: var(--mk-cream);
 }
 
+/* Groundhog Day easter egg banner — sits above the question title */
+.mk-groundhog-banner {
+  max-height: 0;
+  opacity: 0;
+  overflow: hidden;
+  text-align: center;
+  font-weight: 700;
+  color: var(--mk-espresso);
+  background-color: var(--mk-gold);
+  border-radius: 8px;
+  transition: max-height 0.3s ease, opacity 0.3s ease, margin 0.3s ease, padding 0.3s ease;
+}
+.mk-groundhog-banner.show {
+  max-height: 60px;
+  opacity: 1;
+  padding: 0.6rem 1rem;
+  margin-bottom: 0.8rem;
+}
+
 .tenable-wrapper button[type="submit"],
 .tenable-wrapper .play-again-btn {
   background-color: var(--mk-maroon);

@@ -8,6 +8,7 @@
     <link rel="apple-touch-icon" sizes="180x180" href="{% static 'blog/apple-touch-icon.png' %}" />
     <meta name="apple-mobile-web-app-title" content="MovieKernel" />
     <link rel="manifest" href="{% static 'blog/site.webmanifest' %}" />
+    <meta name="theme-color" content="#8B2A2E">
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>{% block page_title %}MovieKernel{% endblock %}</title>
@@ -32,23 +33,23 @@
         <div class="mk-navbar-title">{% block navbar_title %}{% endblock %}</div>
 
         <div class="mk-nav-links">
-            <a href="/">Blog</a>
-            <a href="/quizzes/">Quizzes</a>
+            <a href="/" class="{% if request.path == '/' or '/article/' in request.path %}active{% endif %}">Blog</a>
+            <a href="/quizzes/" class="{% if '/quizzes/' in request.path %}active{% endif %}">Quizzes</a>
 
             <div class="mk-dropdown" id="gamesDropdown">
-                <button class="mk-dropdown-btn" type="button" onclick="toggleGames()" aria-haspopup="true" aria-expanded="false">
+                <button class="mk-dropdown-btn{% if '/tenable/' in request.path or '/bingo/' in request.path or '/higherorlower/' in request.path or '/networks/' in request.path %} active{% endif %}" type="button" onclick="toggleGames()" aria-haspopup="true" aria-expanded="false">
                     Games <span class="mk-caret" aria-hidden="true">▾</span>
                 </button>
                 <div class="mk-dropdown-menu" role="menu">
-                    <a href="/tenable/" role="menuitem">Tenable</a>
-                    <a href="/bingo/" role="menuitem">Bingo</a>
-                    <a href="/higherorlower/" role="menuitem">Higher or Lower</a>
-                    <a href="/networks/" role="menuitem">Networks</a>
+                    <a href="/tenable/" class="{% if '/tenable/' in request.path %}active{% endif %}" role="menuitem">Tenable</a>
+                    <a href="/bingo/" class="{% if '/bingo/' in request.path %}active{% endif %}" role="menuitem">Bingo</a>
+                    <a href="/higherorlower/" class="{% if '/higherorlower/' in request.path %}active{% endif %}" role="menuitem">Higher or Lower</a>
+                    <a href="/networks/" class="{% if '/networks/' in request.path %}active{% endif %}" role="menuitem">Networks</a>
                 </div>
             </div>
 
 
-            <a href="/about/">About</a>
+            <a href="/about/" class="{% if request.path == '/about/' %}active{% endif %}">About</a>
             <button class="mk-help-btn" type="button" onclick="openHelpModal()" aria-label="How to play the games">?</button>
         </div>
     </nav>

@@ -1,0 +1,91 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block page_title %}Page Not Found · MovieKernel{% endblock %}
+
+{% block styles %}
+<link rel="stylesheet" href="{% static 'css/base.css' %}">
+{% endblock %}
+
+{% block navbar_title %}404{% endblock %}
+
+{% block content %}
+<div class="mk-404-wrapper">
+  <span class="mk-404-code">404</span>
+  <h1 class="mk-404-title">You've found a glitch in the simulation.</h1>
+  <p class="mk-404-message">We can't find that page. But you do have a choice.</p>
+  <p class="mk-404-subtext">Choose carefully — there's no undoing this one.</p>
+
+  <div class="mk-pill-choice">
+    <button type="button" class="mk-pill mk-pill-blue" onclick="window.location.href='/'">
+      Take the blue pill
+    </button>
+    <button type="button" class="mk-pill mk-pill-red" id="redPillBtn" onclick="takeRedPill()">
+      Take the red pill
+    </button>
+  </div>
+</div>
+
+<!-- Matrix rain takeover, only ever runs if the red pill is clicked -->
+<div id="matrix-overlay" class="mk-matrix-overlay">
+  <canvas id="matrix-canvas"></canvas>
+  <div id="matrix-wake-message" class="mk-matrix-wake">
+    <p class="mk-matrix-wake-text">Wake up.</p>
+    <a href="/" class="mk-matrix-back">Back to reality</a>
+  </div>
+</div>
+
+<script>
+  function takeRedPill() {
+    const btn = document.getElementById('redPillBtn');
+    if (btn) btn.classList.add('mk-pill-glitching');
+    setTimeout(startMatrixRain, 350);
+  }
+
+  function startMatrixRain() {
+    const overlay = document.getElementById('matrix-overlay');
+    const canvas = document.getElementById('matrix-canvas');
+    const wakeMessage = document.getElementById('matrix-wake-message');
+    if (!overlay || !canvas) return;
+
+    overlay.classList.add('show');
+    document.body.style.overflow = 'hidden';
+
+    const ctx = canvas.getContext('2d');
+    let width, height, columns, drops;
+
+    function resize() {
+      width = canvas.width = window.innerWidth;
+      height = canvas.height = window.innerHeight;
+      columns = Math.floor(width / 18);
+      drops = new Array(columns).fill(1);
+    }
+    resize();
+    window.addEventListener('resize', resize);
+
+    const chars = 'アイウエオカキクケコサシスセソ0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+
+    setInterval(() => {
+      ctx.fillStyle = 'rgba(0, 0, 0, 0.06)';
+      ctx.fillRect(0, 0, width, height);
+
+      ctx.fillStyle = '#3EFF6D';
+      ctx.font = '16px monospace';
+
+      for (let i = 0; i < drops.length; i++) {
+        const char = chars[Math.floor(Math.random() * chars.length)];
+        ctx.fillText(char, i * 18, drops[i] * 18);
+
+        if (drops[i] * 18 > height && Math.random() > 0.975) {
+          drops[i] = 0;
+        }
+        drops[i]++;
+      }
+    }, 40);
+
+    setTimeout(() => {
+      if (wakeMessage) wakeMessage.classList.add('show');
+    }, 3200);
+  }
+</script>
+{% endblock %}
