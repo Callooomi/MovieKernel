@@ -14,7 +14,12 @@
 {% block navbar_title %}Networks{% endblock %}
 
 {% block content %}
-<p id="lives">Lives: {{ lives }}</p>
+<div id="lives-display" class="mk-lives-display">
+    {% for i in "123" %}
+    <span class="mk-heart{% if forloop.counter > lives %} lost{% endif %}" data-heart="{{ forloop.counter }}">&hearts;</span>
+    {% endfor %}
+</div>
+<p id="result" class="mk-result-message"></p>
 
 <!-- Step Tracker -->
 <div id="step-tracker">Selected Path: <span id="path-labels">None</span></div>
@@ -41,8 +46,6 @@
 <div id="submit-container">
     <button id="submit-btn">Submit Path</button>
 </div>
-
-<p id="result"></p>
 
 <div class="network-nav-buttons">
     {% if prev_board_id %}
@@ -108,6 +111,25 @@ function refreshUI() {
     updateTracker();
 }
 
+function loseLife(newLives) {
+    const heartIndex = newLives + 1; // the heart that was just lost
+    const heart = document.querySelector(`.mk-heart[data-heart="${heartIndex}"]`);
+    const livesDisplay = document.getElementById('lives-display');
+
+    if (livesDisplay) {
+        livesDisplay.classList.remove('mk-lives-shake');
+        void livesDisplay.offsetWidth;
+        livesDisplay.classList.add('mk-lives-shake');
+    }
+    if (heart) {
+        heart.classList.add('losing');
+        setTimeout(() => {
+            heart.classList.remove('losing');
+            heart.classList.add('lost');
+        }, 500);
+    }
+}
+
 document.querySelectorAll('.tile').forEach(tile => {
     tile.addEventListener('click', () => {
         if (tile.classList.contains('locked') || gameOver) return;
@@ -123,7 +145,9 @@ document.getElementById('submit-btn').addEventListener('click', () => {
     if (gameOver) return;
 
     if (Object.keys(selected).length !== 5) {
-        document.getElementById('result').innerText = "Please select one tile per column.";
+        const resultEl = document.getElementById('result');
+        resultEl.innerText = "Please select one tile per column.";
+        resultEl.classList.remove('correct', 'incorrect');
         return;
     }
 
@@ -140,9 +164,13 @@ document.getElementById('submit-btn').addEventListener('click', () => {
     })
     .then(res => res.json())
     .then(data => {
-        document.getElementById('result').innerText = data.message;
+        const resultEl = document.getElementById('result');
+        resultEl.innerText = data.message;
 
         if (data.success) {
+            resultEl.classList.remove('incorrect');
+            resultEl.classList.add('correct');
+
             const selectedTiles = document.querySelectorAll('.tile.selected');
             const lockedTiles = document.querySelectorAll('.tile.locked').length;
             const solvedCount = lockedTiles / 5;
@@ -172,7 +200,11 @@ document.getElementById('submit-btn').addEventListener('click', () => {
                 }
             }, 50);
         } else {
-            document.getElementById('lives').innerText = `Lives: ${data.lives}`;
+            resultEl.classList.remove('correct');
+            resultEl.classList.add('incorrect');
+
+            loseLife(data.lives);
+
             if (data.lives <= 0) {
                 const lockedCount = document.querySelectorAll('.tile.locked').length / 5;
                 endGame({solved: lockedCount, lives: 0});
@@ -212,11 +244,11 @@ function endGame({solved, lives}) {
     document.getElementById('twitter-share').href = `https://twitter.com/intent/tweet?text=${encodeURIComponent(shareText)}`;
     document.getElementById('whatsapp-share').href = `https://wa.me/?text=${encodeURIComponent(shareText)}`;
 
-    document.getElementById('game-over-modal').style.display = 'flex';
+    document.getElementById('game-over-modal').classList.add('show');
 }
 
 function closeModal() {
-    document.getElementById('game-over-modal').style.display = 'none';
+    document.getElementById('game-over-modal').classList.remove('show');
 }
 
 function copyShareLink() {
