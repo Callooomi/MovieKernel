@@ -154,6 +154,14 @@
   background-color: var(--mk-maroon);
   color: var(--mk-ivory);
 }
+.answer-clue {
+  display: block;
+  font-size: 0.75rem;
+  font-weight: 400;
+  font-style: italic;
+  color: var(--mk-muted);
+  margin-top: 0.15rem;
+}
 .answers-box li.flashing { animation: flashGold 0.6s ease-in-out; border-radius: 12px; }
 .answers-box li.flash-correct { animation: flashCorrect 0.6s ease-in-out; border-radius: 12px; }
 .answers-box li.flash-incorrect { animation: flashIncorrect 2s ease-in-out; border-radius: 12px; }

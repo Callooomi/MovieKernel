@@ -1,24 +1,8 @@
-import re
 from django.shortcuts import render, get_object_or_404, redirect
 from django.http import JsonResponse
 from django.db.models import Case, When, Value, IntegerField
-from django.db.models.functions import Replace, Lower
 from django.utils import timezone
-from .models import TenableQuestion, TenableAnswer, MovieTitle, ActorName
-
-
-def normalize(text):
-    """Strip punctuation/spacing so 'spiderman' can match 'Spider-Man'."""
-    return re.sub(r"[-'.\s]", "", text).lower()
-
-
-def _stripped(field_name):
-    """Same normalization, built as a DB expression so it can be compared
-    against the normalized query directly in the query itself."""
-    expr = Lower(field_name)
-    for ch in ['-', "'", '.', ' ']:
-        expr = Replace(expr, Value(ch), Value(''))
-    return expr
+from .models import TenableQuestion, TenableAnswer, MovieTitle, ActorName, normalize_text
 
 
 def latest_tenable(request):
@@ -35,9 +19,9 @@ def latest_tenable(request):
 
 def guess_suggestions(request, question_id):
     """Small JSON endpoint: returns up to 20 matching titles/names for the
-    guess box, server-side, instead of shipping the entire list to the
-    browser and filtering it there. Matching ignores punctuation/spacing
-    so 'spiderman' still finds 'Spider-Man'."""
+    guess box. Matches against a precomputed, indexed normalized column
+    (punctuation/spacing already stripped at save time) rather than
+    recomputing that normalization on every row on every keystroke."""
     today = timezone.localdate()
     question = get_object_or_404(TenableQuestion, id=question_id, release_date__lte=today)
 
@@ -45,16 +29,15 @@ def guess_suggestions(request, question_id):
     if len(q) < 2:
         return JsonResponse({'results': []})
 
-    normalized_q = normalize(q)
+    normalized_q = normalize_text(q)
 
     if question.question_type == TenableQuestion.QuestionType.ACTOR:
         results = list(
             ActorName.objects
-            .annotate(normalized=_stripped('name'))
-            .filter(normalized__icontains=normalized_q)
+            .filter(normalized_name__icontains=normalized_q)
             .annotate(
                 starts_with_query=Case(
-                    When(normalized__istartswith=normalized_q, then=Value(0)),
+                    When(normalized_name__istartswith=normalized_q, then=Value(0)),
                     default=Value(1),
                     output_field=IntegerField(),
                 )
@@ -65,11 +48,10 @@ def guess_suggestions(request, question_id):
     else:
         results = list(
             MovieTitle.objects
-            .annotate(normalized=_stripped('title'))
-            .filter(normalized__icontains=normalized_q)
+            .filter(normalized_title__icontains=normalized_q)
             .annotate(
                 starts_with_query=Case(
-                    When(normalized__istartswith=normalized_q, then=Value(0)),
+                    When(normalized_title__istartswith=normalized_q, then=Value(0)),
                     default=Value(1),
                     output_field=IntegerField(),
                 )
@@ -105,6 +87,13 @@ def play_tenable(request, question_id):
     message = ''
     reveal = False
 
+    # Fetch this puzzle's answers exactly once and reuse the result for
+    # everything below — previously this queried the database three
+    # separate times per request (once per `question.answers.all()` call).
+    answers = list(question.answers.all())
+    all_answers = [ans.answer_text for ans in answers]
+    all_answers_lower = [text.lower() for text in all_answers]
+
     if request.method == 'POST':
         if 'play_again' in request.POST:
             correct_guesses = []
@@ -119,7 +108,6 @@ def play_tenable(request, question_id):
 
         else:
             guess = request.POST.get('guess', '').strip().lower()
-            all_answers_lower = [ans.answer_text.lower() for ans in question.answers.all()]
 
             if guess in all_answers_lower:
                 if guess not in correct_guesses:
@@ -134,21 +122,18 @@ def play_tenable(request, question_id):
             request.session[session_correct_key] = correct_guesses
             request.session[session_lives_key] = lives
 
-    all_answers = [ans.answer_text for ans in question.answers.all()]
     is_game_over = lives <= 0 or len(correct_guesses) == len(all_answers)
 
-    # Display format
+    # Each slot carries whether it's been found, what to display, and — while
+    # still unfound — its optional clue.
     ordered_display_answers = []
-    for idx, ans in enumerate(question.answers.all(), start=1):
-        if ans.answer_text.lower() in correct_guesses or reveal or is_game_over:
-            ordered_display_answers.append(ans.answer_text)
-        else:
-            ordered_display_answers.append(str(idx))
-
-    correct_answers_display = []
-    for ans in question.answers.all():
-        if ans.answer_text.lower() in correct_guesses:
-            correct_answers_display.append(ans.answer_text)
+    for idx, ans in enumerate(answers, start=1):
+        found = ans.answer_text.lower() in correct_guesses or reveal or is_game_over
+        ordered_display_answers.append({
+            'display': ans.answer_text if found else str(idx),
+            'found': found,
+            'clue': '' if found else ans.clue,
+        })
 
     score_summary = f"{len(correct_guesses)}/{len(all_answers)}"
     incorrect_attempts = 3 - lives
@@ -166,7 +151,6 @@ def play_tenable(request, question_id):
     context = {
         'question': question,
         'correct_guesses': correct_guesses,
-        'correct_answers_display': correct_answers_display,
         'remaining_lives': lives,
         'message': message,
         'is_game_over': is_game_over,

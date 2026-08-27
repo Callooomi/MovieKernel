@@ -36,8 +36,9 @@
 
     <ul class="answers-box">
         {% for item in ordered_display_answers %}
-        <li class="{% if item in correct_answers_display %}correct{% endif %}" id="answer-{{ forloop.counter }}">
-            <span>{{ item }}</span>
+        <li class="{% if item.found %}correct{% endif %}" id="answer-{{ forloop.counter }}">
+            <span>{{ item.display }}</span>
+            {% if item.clue %}<span class="answer-clue">{{ item.clue }}</span>{% endif %}
         </li>
         {% endfor %}
     </ul>

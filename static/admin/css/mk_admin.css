@@ -1,0 +1,49 @@
+/* MovieKernel admin theme — overrides Django's own admin CSS variables,
+   so this doesn't fight the framework, it uses the system it already
+   provides for exactly this purpose. */
+
+:root {
+  --primary: #8B2A2E;            /* maroon — links, selected nav */
+  --secondary: #7A2327;          /* maroon-deep — header bg */
+  --accent: #C9A24B;             /* gold — highlight accent */
+  --primary-fg: #FBF4E6;         /* ivory text on maroon backgrounds */
+
+  --body-fg: #3A2418;            /* espresso body text */
+  --body-bg: #F4ECDC;            /* cream page background */
+  --body-quiet-color: #6B5A48;   /* muted secondary text */
+  --body-loud-color: #3A2418;
+
+  --header-color: #FBF4E6;
+  --header-branding-color: #C9A24B;
+  --header-bg: #7A2327;
+  --header-link-color: #FBF4E6;
+
+  --breadcrumbs-fg: #E0D4B8;
+  --breadcrumbs-link-fg: #FBF4E6;
+  --breadcrumbs-bg: #8B2A2E;
+
+  --link-fg: #8B2A2E;
+  --link-hover-color: #7A2327;
+  --link-selected-fg: #C9A24B;
+
+  --hairline-color: #E0D4B8;
+  --border-color: #E0D4B8;
+
+  --button-fg: #FBF4E6;
+  --button-bg: #8B2A2E;
+  --button-hover-bg: #7A2327;
+  --default-button-bg: #7A2327;
+  --default-button-hover-bg: #5c1a1d;
+
+  --darkened-bg: #FBF4E6;
+  --selected-bg: #F4ECDC;
+  --selected-row: #F0D896;
+}
+
+/* A touch of the site's own serif on the branding header, so it reads as
+   "MovieKernel" rather than a generic re-tinted admin panel. */
+#site-name, #site-name a {
+  font-family: 'Fraunces', Georgia, serif;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}

@@ -1,4 +1,7 @@
 from django.contrib import admin
+admin.site.site_header = "MovieKernel Admin"
+admin.site.site_title = "MovieKernel Admin"
+admin.site.index_title = "Dashboard"
 from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
