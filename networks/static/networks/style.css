@@ -124,44 +124,7 @@ body {
 
 /* #result styling now handled by .mk-result-message (see Lives section above) */
 
-/* Lives — hearts */
-.mk-lives-display {
-    display: flex;
-    justify-content: center;
-    gap: 0.4rem;
-    margin-bottom: 0.4rem;
-}
-.mk-heart {
-    font-size: 2rem;
-    line-height: 1;
-    color: var(--mk-maroon);
-    text-shadow: 0 0 8px rgba(139, 42, 46, 0.3);
-    transition: color 0.3s ease, transform 0.3s ease, text-shadow 0.3s ease;
-}
-.mk-heart.lost {
-    color: var(--mk-line);
-    text-shadow: none;
-    transform: scale(0.85);
-}
-.mk-heart.losing {
-    animation: mkHeartLoss 0.5s ease;
-}
-@keyframes mkHeartLoss {
-    0% { transform: scale(1); }
-    30% { transform: scale(1.3); }
-    60% { transform: scale(0.7) rotate(-10deg); }
-    100% { transform: scale(0.85); }
-}
-.mk-lives-shake {
-    animation: mkLivesShake 0.4s ease;
-}
-@keyframes mkLivesShake {
-    0%, 100% { transform: translateX(0); }
-    20% { transform: translateX(-6px); }
-    40% { transform: translateX(6px); }
-    60% { transform: translateX(-4px); }
-    80% { transform: translateX(4px); }
-}
+/* Lives now shown as hearts — see .mk-lives-display in base.css (shared with Tenable) */
 
 /* Result message — now sits right under the hearts */
 .mk-result-message {

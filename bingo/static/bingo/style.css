@@ -288,6 +288,14 @@ body {
     color: #ff4d4d;
 }
 
+.win-attribution {
+    font-size: 0.85rem;
+    font-style: italic;
+    color: #E7D3B3;
+    margin: 0.2rem 0 0;
+    text-align: left;
+}
+
 /* Play again */
 .btn {
     padding: 10px 20px;

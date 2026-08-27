@@ -1,8 +1,24 @@
+import re
 from django.shortcuts import render, get_object_or_404, redirect
 from django.http import JsonResponse
 from django.db.models import Case, When, Value, IntegerField
+from django.db.models.functions import Replace, Lower
 from django.utils import timezone
 from .models import TenableQuestion, TenableAnswer, MovieTitle, ActorName
+
+
+def normalize(text):
+    """Strip punctuation/spacing so 'spiderman' can match 'Spider-Man'."""
+    return re.sub(r"[-'.\s]", "", text).lower()
+
+
+def _stripped(field_name):
+    """Same normalization, built as a DB expression so it can be compared
+    against the normalized query directly in the query itself."""
+    expr = Lower(field_name)
+    for ch in ['-', "'", '.', ' ']:
+        expr = Replace(expr, Value(ch), Value(''))
+    return expr
 
 
 def latest_tenable(request):
@@ -20,7 +36,8 @@ def latest_tenable(request):
 def guess_suggestions(request, question_id):
     """Small JSON endpoint: returns up to 20 matching titles/names for the
     guess box, server-side, instead of shipping the entire list to the
-    browser and filtering it there."""
+    browser and filtering it there. Matching ignores punctuation/spacing
+    so 'spiderman' still finds 'Spider-Man'."""
     today = timezone.localdate()
     question = get_object_or_404(TenableQuestion, id=question_id, release_date__lte=today)
 
@@ -28,12 +45,16 @@ def guess_suggestions(request, question_id):
     if len(q) < 2:
         return JsonResponse({'results': []})
 
+    normalized_q = normalize(q)
+
     if question.question_type == TenableQuestion.QuestionType.ACTOR:
         results = list(
-            ActorName.objects.filter(name__icontains=q)
+            ActorName.objects
+            .annotate(normalized=_stripped('name'))
+            .filter(normalized__icontains=normalized_q)
             .annotate(
                 starts_with_query=Case(
-                    When(name__istartswith=q, then=Value(0)),
+                    When(normalized__istartswith=normalized_q, then=Value(0)),
                     default=Value(1),
                     output_field=IntegerField(),
                 )
@@ -43,10 +64,12 @@ def guess_suggestions(request, question_id):
         )
     else:
         results = list(
-            MovieTitle.objects.filter(title__icontains=q)
+            MovieTitle.objects
+            .annotate(normalized=_stripped('title'))
+            .filter(normalized__icontains=normalized_q)
             .annotate(
                 starts_with_query=Case(
-                    When(title__istartswith=q, then=Value(0)),
+                    When(normalized__istartswith=normalized_q, then=Value(0)),
                     default=Value(1),
                     output_field=IntegerField(),
                 )

@@ -39,11 +39,7 @@
   margin-bottom: 0.6rem;
   padding: 0 0.3rem;
 }
-.lives {
-  color: var(--mk-maroon);
-  font-size: 1.1rem;
-  font-weight: 600;
-}
+/* Lives now shown as hearts — see .mk-lives-display in base.css */
 
 /* Input + buttons */
 .form-inline {
@@ -65,6 +61,7 @@
   background-color: var(--mk-ivory);
   color: var(--mk-espresso);
   font-family: inherit;
+  font-size: 16px;
   outline: none;
 }
 .tenable-wrapper input[type="text"]:focus {

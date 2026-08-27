@@ -7,7 +7,7 @@
 {% endblock %}
 
 {% block ads_head %}
-{% include "partials/adsense.html" %}
+  {% include "partials/adsense.html" %}
 {% endblock %}
 
 {% block navbar_title %}
@@ -21,7 +21,11 @@
     {% if question.description %}<p class="question-description">{{ question.description }}</p>{% endif %}
 
     <div class="lives-and-reveal">
-        <p class="lives">Lives remaining: {{ remaining_lives }}</p>
+        <div class="mk-lives-display">
+            {% for i in "123" %}
+            <span class="mk-heart{% if forloop.counter > remaining_lives %} lost{% endif %}" data-heart="{{ forloop.counter }}">&hearts;</span>
+            {% endfor %}
+        </div>
         {% if not is_game_over and not reveal %}
         <form method="post">
             {% csrf_token %}
@@ -109,11 +113,25 @@
       <button class="close" type="button" onclick="closeFightClubModal()">&times;</button>
     </div>
     <div class="modal-body" style="text-align:center">
-      <p>Are you sure you want to do that? You know the first rule right?</p>
+      <p>Are you sure? The first rule is... you know the rest.</p>
       <div class="network-nav-buttons">
         <button type="button" class="play-again-btn" onclick="confirmFightClubGuess()">Submit it anyway</button>
         <button type="button" class="play-again-btn" onclick="closeFightClubModal()">Never mind</button>
       </div>
+    </div>
+  </div>
+</div>
+
+<!-- Usual Suspects easter egg: dramatic auto-continuing reveal -->
+<div id="spacey-modal" class="modal">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h2>...</h2>
+      <button class="close" type="button" onclick="closeSpaceyModal()">&times;</button>
+    </div>
+    <div class="modal-body" style="text-align:center">
+      <p style="font-size:1.5rem; font-weight:700; color:var(--mk-maroon); margin-bottom:0.4rem;">Keyser Söze</p>
+      <p style="font-style:italic; color:var(--mk-muted); margin:0;">...you've been talking to him this whole time.</p>
     </div>
   </div>
 </div>
@@ -286,6 +304,19 @@
         processGuess();
     }
 
+    function showSpaceyModal() {
+        const modal = document.getElementById('spacey-modal');
+        if (modal) modal.classList.add('show');
+        setTimeout(function () {
+            if (modal) modal.classList.remove('show');
+            processGuess();
+        }, 1800);
+    }
+    function closeSpaceyModal() {
+        const modal = document.getElementById('spacey-modal');
+        if (modal) modal.classList.remove('show');
+    }
+
     if (form) {
         form.addEventListener('submit', function (event) {
             event.preventDefault();
@@ -295,6 +326,11 @@
 
             if (guess === 'fight club') {
                 showFightClubModal();
+                return;
+            }
+
+            if (guess === 'kevin spacey') {
+                showSpaceyModal();
                 return;
             }
 

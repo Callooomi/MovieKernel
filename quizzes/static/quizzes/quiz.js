@@ -13,6 +13,9 @@
         '  ·  Score ' + correct;
     } else {
       scoreText.textContent = 'Final score: ' + correct + ' / ' + total;
+      // Every question has now been answered — scroll back up so the
+      // (sticky) score bar showing the final result is back in view.
+      window.scrollTo({ top: 0, behavior: 'smooth' });
     }
   }
 

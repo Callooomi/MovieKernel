@@ -14,7 +14,8 @@
 <div class="actor-box game-over-box">
     <div class="result-message">
         {% if game_won %}
-            <p class="win-message">🎉 You won! You completed the board! 🎉</p>
+            <p class="win-message">That's a bingo!</p>
+            <p class="win-attribution">&mdash; Hans Landa</p>
         {% else %}
             <p class="lose-message">You lost! No more actors left.</p>
         {% endif %}
@@ -211,20 +212,21 @@ document.addEventListener('DOMContentLoaded', function() {
         // Handle game over
         if (data.game_over) {
             if (data.game_won) {
-                showGameOverMessage('🎉 You won! You completed the board! 🎉', true);
+                showGameOverMessage("That's a bingo!", true, '&mdash; Hans Landa');
             } else {
                 showGameOverMessage('You lost! No more actors left.', false);
             }
         }
     }
 
-    function showGameOverMessage(message, isWin) {
+    function showGameOverMessage(message, isWin, attribution) {
         const actorBox = document.getElementById('actor-box');
         if (actorBox) {
             actorBox.className = 'actor-box game-over-box';
             actorBox.innerHTML = `
                 <div class="result-message">
                     <p class="${isWin ? 'win-message' : 'lose-message'}">${message}</p>
+                    ${attribution ? `<p class="win-attribution">${attribution}</p>` : ''}
                 </div>
                 <form method="post">
                     <input type="hidden" name="csrfmiddlewaretoken" value="${document.querySelector('[name="csrfmiddlewaretoken"]').value}">
